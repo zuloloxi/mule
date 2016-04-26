@@ -32,7 +32,7 @@ public class NullMetadataResolverFactory implements MetadataResolverFactory
      * @return a {@link NullMetadataResolver} implementation of {@link MetadataKeysResolver}
      */
     @Override
-    public MetadataKeysResolver getKeyResolver()
+    public <T> MetadataKeysResolver<T> getKeyResolver()
     {
         return metadataResolver;
     }
@@ -41,17 +41,17 @@ public class NullMetadataResolverFactory implements MetadataResolverFactory
      * @return a {@link NullMetadataResolver} implementation of {@link MetadataContentResolver}
      */
     @Override
-    public MetadataContentResolver getContentResolver()
+    public <T> MetadataContentResolver<T> getContentResolver()
     {
-        return metadataResolver;
+        return (MetadataContentResolver<T>) metadataResolver;
     }
 
     /**
      * @return a {@link NullMetadataResolver} implementation of {@link MetadataOutputResolver}
      */
     @Override
-    public MetadataOutputResolver getOutputResolver()
+    public <T> MetadataOutputResolver<T> getOutputResolver()
     {
-        return metadataResolver;
+        return (MetadataOutputResolver<T>) metadataResolver;
     }
 }

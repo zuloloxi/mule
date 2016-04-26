@@ -7,6 +7,7 @@
 package org.mule.runtime.module.extension.internal.runtime;
 
 import static org.mule.runtime.module.extension.internal.util.MuleExtensionUtils.getInitialiserEvent;
+import org.mule.runtime.api.metadata.descriptor.MetadataKeyDescriptor;
 import org.mule.runtime.core.api.MuleContext;
 import org.mule.runtime.core.api.MuleEvent;
 import org.mule.runtime.core.api.construct.FlowConstruct;
@@ -118,7 +119,7 @@ public abstract class ExtensionComponent implements MuleContextAware, MetadataAw
      * {@inheritDoc}
      */
     @Override
-    public MetadataResult<List<MetadataKey>> getMetadataKeys() throws MetadataResolvingException
+    public MetadataResult<List<MetadataKeyDescriptor>> getMetadataKeys() throws MetadataResolvingException
     {
         return metadataMediator.getMetadataKeys(getMetadataContext());
     }
@@ -139,6 +140,15 @@ public abstract class ExtensionComponent implements MuleContextAware, MetadataAw
     public MetadataResult<ComponentMetadataDescriptor> getMetadata(MetadataKey key) throws MetadataResolvingException
     {
         return metadataMediator.getMetadata(getMetadataContext(), key);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public MetadataResult<MetadataKeyDescriptor> getMetadataKeyChilds(MetadataKey key) throws MetadataResolvingException
+    {
+        return metadataMediator.getMetadataKeyChilds(getMetadataContext(), key);
     }
 
     @Override

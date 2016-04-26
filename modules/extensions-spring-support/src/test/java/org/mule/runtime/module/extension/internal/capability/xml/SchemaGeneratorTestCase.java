@@ -7,6 +7,7 @@
 package org.mule.runtime.module.extension.internal.capability.xml;
 
 import static java.util.Arrays.asList;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mule.runtime.core.config.MuleManifest.getProductVersion;
@@ -34,12 +35,18 @@ import org.mule.runtime.module.extension.internal.runtime.connector.basic.TestCo
 import org.mule.tck.junit4.AbstractMuleTestCase;
 import org.mule.tck.size.SmallTest;
 import org.mule.test.heisenberg.extension.HeisenbergExtension;
+import org.mule.test.metadata.extension.MetadataExtension;
 import org.mule.test.subtypes.extension.SubTypesMappingConnector;
 import org.mule.test.vegan.extension.VeganExtension;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
+import org.custommonkey.xmlunit.DetailedDiff;
+import org.custommonkey.xmlunit.Diff;
+import org.custommonkey.xmlunit.Difference;
+import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -71,7 +78,8 @@ public class SchemaGeneratorTestCase extends AbstractMuleTestCase
                 {ListConnector.class, "list.xsd"},
                 {StringListConnector.class, "string-list.xsd"},
                 {VeganExtension.class, "vegan.xsd"},
-                {SubTypesMappingConnector.class, "subtypes.xsd"}
+                {SubTypesMappingConnector.class, "subtypes.xsd"},
+                {MetadataExtension.class, "metadata.xsd"}
         });
     }
 
@@ -99,5 +107,26 @@ public class SchemaGeneratorTestCase extends AbstractMuleTestCase
         String schema = generator.generate(extensionModel, capability);
 
         compareXML(expectedSchema, schema);
+        XMLUnit.setNormalizeWhitespace(true);
+        XMLUnit.setIgnoreWhitespace(true);
+        XMLUnit.setIgnoreComments(true);
+        XMLUnit.setIgnoreAttributeOrder(true);
+
+        Diff diff = XMLUnit.compareXML(expectedSchema, schema);
+        if (!(diff.similar() && diff.identical()))
+        {
+            System.out.println(schema);
+            DetailedDiff detDiff = new DetailedDiff(diff);
+            @SuppressWarnings("rawtypes")
+            List differences = detDiff.getAllDifferences();
+            StringBuilder diffLines = new StringBuilder();
+            for (Object object : differences)
+            {
+                Difference difference = (Difference) object;
+                diffLines.append(difference.toString() + '\n');
+            }
+
+            assertEquals(String.format("The Output for extension [%s] schema was not the expected:", extensionUnderTest.getName()), expectedSchema, schema);
+        }
     }
 }

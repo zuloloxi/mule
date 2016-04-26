@@ -6,16 +6,24 @@
  */
 package org.mule.runtime.module.extension.internal.metadata;
 
+import static java.util.stream.Collectors.toList;
+import static org.mule.runtime.api.metadata.descriptor.builder.MetadataDescriptorBuilder.keyDescriptor;
 import static org.mule.runtime.api.metadata.resolving.FailureCode.NO_DYNAMIC_TYPE_AVAILABLE;
 import static org.mule.runtime.api.metadata.resolving.MetadataResult.failure;
 import static org.mule.runtime.api.metadata.resolving.MetadataResult.mergeResults;
 import static org.mule.runtime.api.metadata.resolving.MetadataResult.success;
+import static org.mule.runtime.module.extension.internal.util.IntrospectionUtils.getContentParameter;
+import static org.mule.runtime.module.extension.internal.util.IntrospectionUtils.getMetadataKeyId;
+import static org.mule.runtime.module.extension.internal.util.IntrospectionUtils.isNullType;
+import static org.mule.runtime.module.extension.internal.util.IntrospectionUtils.isVoid;
+import org.mule.metadata.api.model.MetadataType;
 import org.mule.runtime.api.connection.ConnectionException;
 import org.mule.runtime.api.metadata.MetadataAware;
 import org.mule.runtime.api.metadata.MetadataContext;
 import org.mule.runtime.api.metadata.MetadataKey;
 import org.mule.runtime.api.metadata.MetadataResolvingException;
 import org.mule.runtime.api.metadata.descriptor.ComponentMetadataDescriptor;
+import org.mule.runtime.api.metadata.descriptor.MetadataKeyDescriptor;
 import org.mule.runtime.api.metadata.descriptor.OutputMetadataDescriptor;
 import org.mule.runtime.api.metadata.descriptor.TypeMetadataDescriptor;
 import org.mule.runtime.api.metadata.descriptor.builder.ComponentMetadataDescriptorBuilder;
@@ -24,15 +32,13 @@ import org.mule.runtime.api.metadata.resolving.MetadataContentResolver;
 import org.mule.runtime.api.metadata.resolving.MetadataKeysResolver;
 import org.mule.runtime.api.metadata.resolving.MetadataOutputResolver;
 import org.mule.runtime.api.metadata.resolving.MetadataResult;
+import org.mule.runtime.core.util.collection.ImmutableListCollector;
 import org.mule.runtime.extension.api.annotation.metadata.Content;
-import org.mule.runtime.extension.api.annotation.metadata.MetadataKeyParam;
+import org.mule.runtime.extension.api.annotation.metadata.MetadataKeyId;
 import org.mule.runtime.extension.api.introspection.RuntimeComponentModel;
 import org.mule.runtime.extension.api.introspection.metadata.MetadataResolverFactory;
-import org.mule.runtime.extension.api.introspection.parameter.ParameterModel;
 import org.mule.runtime.extension.api.introspection.metadata.NullMetadataKey;
-import org.mule.metadata.api.model.MetadataType;
-import org.mule.runtime.module.extension.internal.util.IntrospectionUtils;
-import org.mule.runtime.core.util.collection.ImmutableListCollector;
+import org.mule.runtime.extension.api.introspection.parameter.ParameterModel;
 
 import com.google.common.collect.ImmutableList;
 
@@ -56,22 +62,24 @@ public class MetadataMediator
 
     private final RuntimeComponentModel componentModel;
     private final MetadataResolverFactory resolverFactory;
-    private final Optional<ParameterModel> contentParameter;
-    private final Optional<ParameterModel> metadataKeyParam;
+    private final ParameterModel contentParameter;
+    private final List<ParameterModel> metadataKeyIds;
+    private final int keyLevels;
 
     public MetadataMediator(RuntimeComponentModel componentModel)
     {
         this.componentModel = componentModel;
         this.resolverFactory = componentModel.getMetadataResolverFactory();
-        this.contentParameter = IntrospectionUtils.getContentParameter(componentModel);
-        this.metadataKeyParam = IntrospectionUtils.getMetadataKeyParam(componentModel);
+        this.contentParameter = getContentParameter(componentModel).orElse(null);
+        this.metadataKeyIds = getMetadataKeyId(componentModel);
+        this.keyLevels = metadataKeyIds.size();
     }
 
     /**
      * Resolves the list of types available for the Content or Output of the associated {@link MetadataAware} Component,
      * representing them as a list of {@link MetadataKey}.
      * <p>
-     * If no {@link MetadataKeyParam} is present in the component's input parameters, then a {@link NullMetadataKey} is
+     * If no {@link MetadataKeyId} is present in the component's input parameters, then a {@link NullMetadataKey} is
      * returned. Otherwise, the {@link MetadataKeysResolver#getMetadataKeys} associated with the current Component will
      * be invoked to obtain the keys
      *
@@ -79,16 +87,41 @@ public class MetadataMediator
      * @return Successful {@link MetadataResult} if the keys are obtained without errors
      * Failure {@link MetadataResult} when no Dynamic keys are a available or the retrieval fails for any reason
      */
-    public MetadataResult<List<MetadataKey>> getMetadataKeys(MetadataContext context)
+    public MetadataResult<List<MetadataKeyDescriptor>> getMetadataKeys(MetadataContext context)
     {
-        if (!metadataKeyParam.isPresent())
+        if (metadataKeyIds.isEmpty())
         {
-            return success(ImmutableList.of(new NullMetadataKey()));
+            return success(ImmutableList.of(keyDescriptor(new NullMetadataKey()).isPartial(false).build()));
         }
-
         try
         {
-            return success(resolverFactory.getKeyResolver().getMetadataKeys(context));
+            return success(resolverFactory.getKeyResolver()
+                                   .getMetadataKeys(context)
+                                   .stream()
+                                   .map(k -> new MetadataKeyWrapper(k, keyLevels).describe())
+                                   .collect(toList()));
+        }
+        catch (Exception e)
+        {
+            return failure(e);
+        }
+    }
+
+    public MetadataResult<MetadataKeyDescriptor> getMetadataKeyChilds(MetadataContext context, MetadataKey partialKey)
+    {
+        try
+        {
+            MetadataKeyWrapper key = new MetadataKeyWrapper(partialKey, keyLevels);
+            Object keyIdPojo = new MetadataKeyIdArgumentResolver(componentModel, key.orderedValues()).resolve();
+            Optional<List<MetadataKey>> metadataKeyChilds = resolverFactory.getKeyResolver().getMetadataKeyChilds(context, keyIdPojo);
+            if (keyLevels > 1 && metadataKeyChilds.isPresent())
+            {
+                return success(key.withNewLevel(metadataKeyChilds.get()).describe());
+            }
+            else
+            {
+                return success(key.describe());
+            }
         }
         catch (Exception e)
         {
@@ -167,9 +200,9 @@ public class MetadataMediator
     {
         Stream<ParameterModel> parameters = componentModel.getParameterModels().stream();
 
-        if (contentParameter.isPresent())
+        if (contentParameter != null)
         {
-            parameters = parameters.filter(p -> p != contentParameter.get());
+            parameters = parameters.filter(p -> p != contentParameter);
         }
 
         return parameters
@@ -183,10 +216,10 @@ public class MetadataMediator
      */
     private Optional<TypeMetadataDescriptor> getContentMetadataDescriptor()
     {
-        return contentParameter.isPresent() ? Optional.of(MetadataDescriptorBuilder.typeDescriptor(contentParameter.get().getName())
-                                                         .withType(contentParameter.get().getType())
-                                                         .build())
-                                            : Optional.empty();
+        return contentParameter != null ? Optional.of(MetadataDescriptorBuilder.typeDescriptor(contentParameter.getName())
+                                                              .withType(contentParameter.getType())
+                                                              .build())
+                                        : Optional.empty();
     }
 
     /**
@@ -203,14 +236,14 @@ public class MetadataMediator
      */
     private Optional<MetadataResult<TypeMetadataDescriptor>> getContentMetadataDescriptor(MetadataContext context, MetadataKey key)
     {
-        if (!contentParameter.isPresent())
+        if (contentParameter == null)
         {
             return Optional.empty();
         }
 
         MetadataResult<MetadataType> contentMetadataResult = getContentMetadata(context, key);
         TypeMetadataDescriptor descriptor = MetadataDescriptorBuilder
-                .typeDescriptor(contentParameter.get().getName())
+                .typeDescriptor(contentParameter.getName())
                 .withType(contentMetadataResult.get())
                 .build();
 
@@ -262,13 +295,14 @@ public class MetadataMediator
      */
     private MetadataResult<MetadataType> getContentMetadata(MetadataContext context, MetadataKey key)
     {
-        if (!contentParameter.isPresent())
+        if (contentParameter == null)
         {
             return failure(null, "No @Content parameter found", NO_DYNAMIC_TYPE_AVAILABLE, "");
         }
 
-        return resolveMetadataType(contentParameter.get().getType(),
-                                   () -> resolverFactory.getContentResolver().getContentMetadata(context, key));
+        Object keyIdPojo = new MetadataKeyIdArgumentResolver(componentModel, new MetadataKeyWrapper(key, keyLevels).orderedValues()).resolve();
+        return resolveMetadataType(contentParameter.getType(),
+                                   () -> resolverFactory.getContentResolver().getContentMetadata(context, keyIdPojo));
     }
 
     /**
@@ -282,13 +316,14 @@ public class MetadataMediator
      */
     private MetadataResult<MetadataType> getOutputMetadata(final MetadataContext context, final MetadataKey key)
     {
-        if (IntrospectionUtils.isVoid(componentModel))
+        if (isVoid(componentModel))
         {
             return success(componentModel.getReturnType());
         }
 
+        Object keyIdPojo = new MetadataKeyIdArgumentResolver(componentModel, new MetadataKeyWrapper(key, keyLevels).orderedValues()).resolve();
         return resolveMetadataType(componentModel.getReturnType(),
-                                   () -> resolverFactory.getOutputResolver().getOutputMetadata(context, key));
+                                   () -> resolverFactory.getOutputResolver().getOutputMetadata(context, keyIdPojo));
     }
 
     /**
@@ -306,7 +341,7 @@ public class MetadataMediator
         try
         {
             MetadataType dynamicType = delegate.resolve();
-            return success((dynamicType == null || IntrospectionUtils.isNullType(dynamicType)) ? staticType : dynamicType);
+            return success((dynamicType == null || isNullType(dynamicType)) ? staticType : dynamicType);
         }
         catch (Exception e)
         {
@@ -316,8 +351,7 @@ public class MetadataMediator
 
     private interface MetadataDelegate
     {
-
         MetadataType resolve() throws MetadataResolvingException, ConnectionException;
-
     }
+
 }

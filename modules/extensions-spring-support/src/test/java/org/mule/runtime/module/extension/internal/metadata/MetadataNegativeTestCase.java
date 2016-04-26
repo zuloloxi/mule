@@ -7,15 +7,14 @@
 package org.mule.runtime.module.extension.internal.metadata;
 
 import static org.mule.test.metadata.extension.resolver.TestResolverWithCache.MISSING_ELEMENT_ERROR_MESSAGE;
-
-import org.mule.runtime.core.internal.metadata.InvalidComponentIdException;
-import org.mule.runtime.api.metadata.MetadataKey;
 import org.mule.runtime.api.metadata.MetadataResolvingException;
 import org.mule.runtime.api.metadata.ProcessorId;
 import org.mule.runtime.api.metadata.SourceId;
 import org.mule.runtime.api.metadata.descriptor.ComponentMetadataDescriptor;
+import org.mule.runtime.api.metadata.descriptor.MetadataKeyDescriptor;
 import org.mule.runtime.api.metadata.resolving.FailureCode;
 import org.mule.runtime.api.metadata.resolving.MetadataResult;
+import org.mule.runtime.core.internal.metadata.InvalidComponentIdException;
 
 import java.io.IOException;
 import java.util.List;
@@ -45,7 +44,7 @@ public class MetadataNegativeTestCase extends MetadataExtensionFunctionalTestCas
     public void getKeysWithRuntimeException() throws Exception
     {
         componentId = new ProcessorId(FAIL_WITH_RUNTIME_EXCEPTION, FIRST_PROCESSOR_INDEX);
-        MetadataResult<List<MetadataKey>> metadata = metadataManager.getMetadataKeys(componentId);
+        MetadataResult<List<MetadataKeyDescriptor>> metadata = metadataManager.getMetadataKeys(componentId);
 
         assertFailure(metadata, "", FailureCode.UNKNOWN, RuntimeException.class.getName());
     }
@@ -71,7 +70,7 @@ public class MetadataNegativeTestCase extends MetadataExtensionFunctionalTestCas
     @Test
     public void processorDoesNotExist() throws Exception
     {
-        componentId = new ProcessorId(CONTENT_AND_OUTPUT_METADATA_WITH_KEY_PARAM, "10");
+        componentId = new ProcessorId(CONTENT_AND_OUTPUT_METADATA_WITH_KEY_ID, "10");
         MetadataResult<ComponentMetadataDescriptor> metadata = metadataManager.getMetadata(componentId, personKey);
 
         assertFailure(metadata, "Processor doesn't exist", FailureCode.UNKNOWN, IndexOutOfBoundsException.class.getName());
@@ -99,7 +98,7 @@ public class MetadataNegativeTestCase extends MetadataExtensionFunctionalTestCas
     public void failToGetMetadataFromNonExistingSource() throws IOException
     {
         final SourceId notExistingSource = new SourceId(FLOW_WITHOUT_SOURCE);
-        final MetadataResult<List<MetadataKey>> metadataKeysResult = metadataManager.getMetadataKeys(notExistingSource);
+        final MetadataResult<List<MetadataKeyDescriptor>> metadataKeysResult = metadataManager.getMetadataKeys(notExistingSource);
 
         assertFailure(metadataKeysResult, SOURCE_NOT_FOUND, FailureCode.UNKNOWN, InvalidComponentIdException.class.getName());
     }

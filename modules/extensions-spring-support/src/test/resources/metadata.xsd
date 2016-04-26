@@ -1,0 +1,455 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:mule="http://www.mulesoft.org/schema/mule/core" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.mulesoft.org/schema/mule/metadata" attributeFormDefault="unqualified" elementFormDefault="qualified">
+<xs:import namespace="http://www.w3.org/XML/1998/namespace"></xs:import>
+<xs:import namespace="http://www.springframework.org/schema/beans" schemaLocation="http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"></xs:import>
+<xs:import namespace="http://www.mulesoft.org/schema/mule/core" schemaLocation="http://www.mulesoft.org/schema/mule/core/current/mule.xsd"></xs:import>
+<xs:import namespace="http://www.mulesoft.org/schema/mule/extension" schemaLocation="http://www.mulesoft.org/schema/mule/extension/current/mule-extension.xsd"></xs:import>
+<xs:element xmlns:mule="http://www.mulesoft.org/schema/mule/core" substitutionGroup="mule:abstract-extension" name="config">
+    <xs:complexType>
+        <xs:complexContent>
+            <xs:extension base="mule:abstractExtensionType">
+                <xs:annotation>
+                    <xs:documentation>Default configuration</xs:documentation>
+                </xs:annotation>
+                <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                    <xs:element xmlns:extension="http://www.mulesoft.org/schema/mule/extension" minOccurs="0" maxOccurs="1" ref="extension:abstractConnectionProvider"></xs:element>
+                </xs:sequence>
+                <xs:attribute type="xs:string" use="required" name="name"></xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+</xs:element>
+<xs:element xmlns="http://www.mulesoft.org/schema/mule/metadata" xmlns:mule="http://www.mulesoft.org/schema/mule/core" type="ContentAndOutputCacheResolverType" substitutionGroup="mule:abstract-message-processor" name="content-and-output-cache-resolver"></xs:element>
+<xs:complexType name="ContentAndOutputCacheResolverType">
+    <xs:complexContent>
+        <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core" base="mule:abstractMessageProcessorType">
+            <xs:attribute type="mule:substitutableName" use="optional" name="config-ref">
+                <xs:annotation>
+                    <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute type="mule:expressionString" use="required" name="type"></xs:attribute>
+            <xs:attribute type="mule:expressionObject" use="optional" name="content"></xs:attribute>
+            <xs:attribute type="xs:string" use="optional" name="target">
+                <xs:annotation>
+                    <xs:documentation>The name of a variable on which the operation's output will be placed</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+<xs:element xmlns="http://www.mulesoft.org/schema/mule/metadata" xmlns:mule="http://www.mulesoft.org/schema/mule/core" type="ContentAndOutputMetadataWithKeyIdType" substitutionGroup="mule:abstract-message-processor" name="content-and-output-metadata-with-key-id"></xs:element>
+<xs:complexType name="ContentAndOutputMetadataWithKeyIdType">
+    <xs:complexContent>
+        <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core" base="mule:abstractMessageProcessorType">
+            <xs:attribute type="mule:substitutableName" use="optional" name="config-ref">
+                <xs:annotation>
+                    <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute type="mule:expressionString" use="required" name="type"></xs:attribute>
+            <xs:attribute type="mule:expressionObject" use="optional" name="content"></xs:attribute>
+            <xs:attribute type="xs:string" use="optional" name="target">
+                <xs:annotation>
+                    <xs:documentation>The name of a variable on which the operation's output will be placed</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+<xs:element xmlns="http://www.mulesoft.org/schema/mule/metadata" xmlns:mule="http://www.mulesoft.org/schema/mule/core" type="ContentAndOutputMetadataWithoutKeyIdType" substitutionGroup="mule:abstract-message-processor" name="content-and-output-metadata-without-key-id"></xs:element>
+<xs:complexType name="ContentAndOutputMetadataWithoutKeyIdType">
+    <xs:complexContent>
+        <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core" base="mule:abstractMessageProcessorType">
+            <xs:attribute type="mule:substitutableName" use="optional" name="config-ref">
+                <xs:annotation>
+                    <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute type="mule:expressionObject" use="optional" name="content"></xs:attribute>
+            <xs:attribute type="xs:string" use="optional" name="target">
+                <xs:annotation>
+                    <xs:documentation>The name of a variable on which the operation's output will be placed</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+<xs:element xmlns="http://www.mulesoft.org/schema/mule/metadata" xmlns:mule="http://www.mulesoft.org/schema/mule/core" type="ContentMetadataWithKeyIdType" substitutionGroup="mule:abstract-message-processor" name="content-metadata-with-key-id"></xs:element>
+<xs:complexType name="ContentMetadataWithKeyIdType">
+    <xs:complexContent>
+        <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core" base="mule:abstractMessageProcessorType">
+            <xs:attribute type="mule:substitutableName" use="optional" name="config-ref">
+                <xs:annotation>
+                    <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute type="mule:expressionString" use="required" name="type"></xs:attribute>
+            <xs:attribute type="mule:expressionObject" use="optional" name="content"></xs:attribute>
+            <xs:attribute type="xs:string" use="optional" name="target">
+                <xs:annotation>
+                    <xs:documentation>The name of a variable on which the operation's output will be placed</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+<xs:element xmlns="http://www.mulesoft.org/schema/mule/metadata" xmlns:mule="http://www.mulesoft.org/schema/mule/core" type="ContentMetadataWithoutKeyIdType" substitutionGroup="mule:abstract-message-processor" name="content-metadata-without-key-id"></xs:element>
+<xs:complexType name="ContentMetadataWithoutKeyIdType">
+    <xs:complexContent>
+        <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core" base="mule:abstractMessageProcessorType">
+            <xs:attribute type="mule:substitutableName" use="optional" name="config-ref">
+                <xs:annotation>
+                    <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute type="mule:expressionObject" use="optional" name="content"></xs:attribute>
+            <xs:attribute type="xs:string" use="optional" name="target">
+                <xs:annotation>
+                    <xs:documentation>The name of a variable on which the operation's output will be placed</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+<xs:element xmlns="http://www.mulesoft.org/schema/mule/metadata" xmlns:mule="http://www.mulesoft.org/schema/mule/core" type="ContentMetadataWithoutKeysWithKeyIdType" substitutionGroup="mule:abstract-message-processor" name="content-metadata-without-keys-with-key-id"></xs:element>
+<xs:complexType name="ContentMetadataWithoutKeysWithKeyIdType">
+    <xs:complexContent>
+        <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core" base="mule:abstractMessageProcessorType">
+            <xs:attribute type="mule:substitutableName" use="optional" name="config-ref">
+                <xs:annotation>
+                    <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute type="mule:expressionString" use="required" name="type"></xs:attribute>
+            <xs:attribute type="mule:expressionObject" use="optional" name="content"></xs:attribute>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+<xs:element xmlns="http://www.mulesoft.org/schema/mule/metadata" xmlns:mule="http://www.mulesoft.org/schema/mule/core" type="ContentOnlyCacheResolverType" substitutionGroup="mule:abstract-message-processor" name="content-only-cache-resolver"></xs:element>
+<xs:complexType name="ContentOnlyCacheResolverType">
+    <xs:complexContent>
+        <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core" base="mule:abstractMessageProcessorType">
+            <xs:attribute type="mule:substitutableName" use="optional" name="config-ref">
+                <xs:annotation>
+                    <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute type="mule:expressionString" use="required" name="type"></xs:attribute>
+            <xs:attribute type="mule:expressionObject" use="optional" name="content"></xs:attribute>
+            <xs:attribute type="xs:string" use="optional" name="target">
+                <xs:annotation>
+                    <xs:documentation>The name of a variable on which the operation's output will be placed</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+<xs:element xmlns="http://www.mulesoft.org/schema/mule/metadata" xmlns:mule="http://www.mulesoft.org/schema/mule/core" type="ContentOnlyIgnoresOutputType" substitutionGroup="mule:abstract-message-processor" name="content-only-ignores-output"></xs:element>
+<xs:complexType name="ContentOnlyIgnoresOutputType">
+    <xs:complexContent>
+        <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core" base="mule:abstractMessageProcessorType">
+            <xs:attribute type="mule:substitutableName" use="optional" name="config-ref">
+                <xs:annotation>
+                    <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute type="mule:expressionString" use="required" name="type"></xs:attribute>
+            <xs:attribute type="mule:expressionObject" use="optional" name="content"></xs:attribute>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+<xs:element xmlns="http://www.mulesoft.org/schema/mule/metadata" xmlns:mule="http://www.mulesoft.org/schema/mule/core" type="FailWithResolvingExceptionType" substitutionGroup="mule:abstract-message-processor" name="fail-with-resolving-exception"></xs:element>
+<xs:complexType name="FailWithResolvingExceptionType">
+    <xs:complexContent>
+        <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core" base="mule:abstractMessageProcessorType">
+            <xs:attribute type="mule:substitutableName" use="optional" name="config-ref">
+                <xs:annotation>
+                    <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute type="mule:expressionString" use="required" name="type"></xs:attribute>
+            <xs:attribute type="mule:expressionObject" use="optional" name="content"></xs:attribute>
+            <xs:attribute type="xs:string" use="optional" name="target">
+                <xs:annotation>
+                    <xs:documentation>The name of a variable on which the operation's output will be placed</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+<xs:element xmlns="http://www.mulesoft.org/schema/mule/metadata" xmlns:mule="http://www.mulesoft.org/schema/mule/core" type="FailWithRuntimeExceptionType" substitutionGroup="mule:abstract-message-processor" name="fail-with-runtime-exception"></xs:element>
+<xs:complexType name="FailWithRuntimeExceptionType">
+    <xs:complexContent>
+        <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core" base="mule:abstractMessageProcessorType">
+            <xs:attribute type="mule:substitutableName" use="optional" name="config-ref">
+                <xs:annotation>
+                    <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute type="mule:expressionString" use="required" name="type"></xs:attribute>
+            <xs:attribute type="mule:expressionObject" use="optional" name="content"></xs:attribute>
+            <xs:attribute type="xs:string" use="optional" name="target">
+                <xs:annotation>
+                    <xs:documentation>The name of a variable on which the operation's output will be placed</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+<xs:element xmlns="http://www.mulesoft.org/schema/mule/metadata" xmlns:mule="http://www.mulesoft.org/schema/mule/core" type="KeyIdWithoutKeyResolverType" substitutionGroup="mule:abstract-message-processor" name="key-id-without-key-resolver"></xs:element>
+<xs:complexType name="KeyIdWithoutKeyResolverType">
+    <xs:complexContent>
+        <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core" base="mule:abstractMessageProcessorType">
+            <xs:attribute type="mule:substitutableName" use="optional" name="config-ref">
+                <xs:annotation>
+                    <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute type="mule:expressionString" use="required" name="type"></xs:attribute>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+<xs:element xmlns="http://www.mulesoft.org/schema/mule/metadata" xmlns:mule="http://www.mulesoft.org/schema/mule/core" type="MessageAttributesNullTypeMetadataType" substitutionGroup="mule:abstract-message-processor" name="message-attributes-null-type-metadata"></xs:element>
+<xs:complexType name="MessageAttributesNullTypeMetadataType">
+    <xs:complexContent>
+        <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core" base="mule:abstractMessageProcessorType">
+            <xs:attribute type="mule:substitutableName" use="optional" name="config-ref">
+                <xs:annotation>
+                    <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute type="xs:string" use="optional" name="target">
+                <xs:annotation>
+                    <xs:documentation>The name of a variable on which the operation's output will be placed</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+<xs:element xmlns="http://www.mulesoft.org/schema/mule/metadata" xmlns:mule="http://www.mulesoft.org/schema/mule/core" type="MessageAttributesPersonTypeMetadataType" substitutionGroup="mule:abstract-message-processor" name="message-attributes-person-type-metadata"></xs:element>
+<xs:complexType name="MessageAttributesPersonTypeMetadataType">
+    <xs:complexContent>
+        <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core" base="mule:abstractMessageProcessorType">
+            <xs:attribute type="mule:substitutableName" use="optional" name="config-ref">
+                <xs:annotation>
+                    <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute type="xs:string" use="optional" name="target">
+                <xs:annotation>
+                    <xs:documentation>The name of a variable on which the operation's output will be placed</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+<xs:element xmlns="http://www.mulesoft.org/schema/mule/metadata" xmlns:mule="http://www.mulesoft.org/schema/mule/core" type="OutputAndMetadataKeyCacheResolverType" substitutionGroup="mule:abstract-message-processor" name="output-and-metadata-key-cache-resolver"></xs:element>
+<xs:complexType name="OutputAndMetadataKeyCacheResolverType">
+    <xs:complexContent>
+        <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core" base="mule:abstractMessageProcessorType">
+            <xs:attribute type="mule:substitutableName" use="optional" name="config-ref">
+                <xs:annotation>
+                    <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute type="mule:expressionString" use="required" name="type"></xs:attribute>
+            <xs:attribute type="xs:string" use="optional" name="target">
+                <xs:annotation>
+                    <xs:documentation>The name of a variable on which the operation's output will be placed</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+<xs:element xmlns="http://www.mulesoft.org/schema/mule/metadata" xmlns:mule="http://www.mulesoft.org/schema/mule/core" type="OutputMetadataWithKeyIdType" substitutionGroup="mule:abstract-message-processor" name="output-metadata-with-key-id"></xs:element>
+<xs:complexType name="OutputMetadataWithKeyIdType">
+    <xs:complexContent>
+        <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core" base="mule:abstractMessageProcessorType">
+            <xs:attribute type="mule:substitutableName" use="optional" name="config-ref">
+                <xs:annotation>
+                    <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute type="mule:expressionString" use="required" name="type"></xs:attribute>
+            <xs:attribute type="mule:expressionObject" use="optional" name="content"></xs:attribute>
+            <xs:attribute type="xs:string" use="optional" name="target">
+                <xs:annotation>
+                    <xs:documentation>The name of a variable on which the operation's output will be placed</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+<xs:element xmlns="http://www.mulesoft.org/schema/mule/metadata" xmlns:mule="http://www.mulesoft.org/schema/mule/core" type="OutputMetadataWithoutKeyIdType" substitutionGroup="mule:abstract-message-processor" name="output-metadata-without-key-id"></xs:element>
+<xs:complexType name="OutputMetadataWithoutKeyIdType">
+    <xs:complexContent>
+        <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core" base="mule:abstractMessageProcessorType">
+            <xs:attribute type="mule:substitutableName" use="optional" name="config-ref">
+                <xs:annotation>
+                    <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute type="mule:expressionObject" use="optional" name="content"></xs:attribute>
+            <xs:attribute type="xs:string" use="optional" name="target">
+                <xs:annotation>
+                    <xs:documentation>The name of a variable on which the operation's output will be placed</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+<xs:element xmlns="http://www.mulesoft.org/schema/mule/metadata" xmlns:mule="http://www.mulesoft.org/schema/mule/core" type="OutputMetadataWithoutKeysWithKeyIdType" substitutionGroup="mule:abstract-message-processor" name="output-metadata-without-keys-with-key-id"></xs:element>
+<xs:complexType name="OutputMetadataWithoutKeysWithKeyIdType">
+    <xs:complexContent>
+        <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core" base="mule:abstractMessageProcessorType">
+            <xs:attribute type="mule:substitutableName" use="optional" name="config-ref">
+                <xs:annotation>
+                    <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute type="mule:expressionString" use="required" name="type"></xs:attribute>
+            <xs:attribute type="xs:string" use="optional" name="target">
+                <xs:annotation>
+                    <xs:documentation>The name of a variable on which the operation's output will be placed</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+<xs:element xmlns="http://www.mulesoft.org/schema/mule/metadata" xmlns:mule="http://www.mulesoft.org/schema/mule/core" type="OutputOnlyWithoutContentParamType" substitutionGroup="mule:abstract-message-processor" name="output-only-without-content-param"></xs:element>
+<xs:complexType name="OutputOnlyWithoutContentParamType">
+    <xs:complexContent>
+        <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core" base="mule:abstractMessageProcessorType">
+            <xs:attribute type="mule:substitutableName" use="optional" name="config-ref">
+                <xs:annotation>
+                    <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute type="mule:expressionString" use="required" name="type"></xs:attribute>
+            <xs:attribute type="xs:string" use="optional" name="target">
+                <xs:annotation>
+                    <xs:documentation>The name of a variable on which the operation's output will be placed</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+<xs:element xmlns="http://www.mulesoft.org/schema/mule/metadata" xmlns:mule="http://www.mulesoft.org/schema/mule/core" type="PartialMultiLevelKeyResolverType" substitutionGroup="mule:abstract-message-processor" name="partial-multi-level-key-resolver"></xs:element>
+<xs:complexType name="PartialMultiLevelKeyResolverType">
+    <xs:complexContent>
+        <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core" base="mule:abstractMessageProcessorType">
+            <xs:attribute type="mule:substitutableName" use="optional" name="config-ref">
+                <xs:annotation>
+                    <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute type="mule:expressionString" use="required" name="continent"></xs:attribute>
+            <xs:attribute type="mule:expressionString" use="required" name="country"></xs:attribute>
+            <xs:attribute type="mule:expressionString" use="required" name="city"></xs:attribute>
+            <xs:attribute type="mule:expressionObject" use="optional" name="content"></xs:attribute>
+            <xs:attribute type="xs:string" use="optional" name="target">
+                <xs:annotation>
+                    <xs:documentation>The name of a variable on which the operation's output will be placed</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+<xs:element xmlns="http://www.mulesoft.org/schema/mule/metadata" xmlns:mule="http://www.mulesoft.org/schema/mule/core" type="ShouldInheritExtensionResolversType" substitutionGroup="mule:abstract-message-processor" name="should-inherit-extension-resolvers"></xs:element>
+<xs:complexType name="ShouldInheritExtensionResolversType">
+    <xs:complexContent>
+        <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core" base="mule:abstractMessageProcessorType">
+            <xs:attribute type="mule:substitutableName" use="optional" name="config-ref">
+                <xs:annotation>
+                    <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute type="mule:expressionString" use="required" name="type"></xs:attribute>
+            <xs:attribute type="mule:expressionObject" use="optional" name="content"></xs:attribute>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+<xs:element xmlns="http://www.mulesoft.org/schema/mule/metadata" xmlns:mule="http://www.mulesoft.org/schema/mule/core" type="ShouldInheritOperationParentResolversType" substitutionGroup="mule:abstract-message-processor" name="should-inherit-operation-parent-resolvers"></xs:element>
+<xs:complexType name="ShouldInheritOperationParentResolversType">
+    <xs:complexContent>
+        <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core" base="mule:abstractMessageProcessorType">
+            <xs:attribute type="mule:substitutableName" use="optional" name="config-ref">
+                <xs:annotation>
+                    <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute type="mule:expressionString" use="required" name="type"></xs:attribute>
+            <xs:attribute type="mule:expressionObject" use="optional" name="content"></xs:attribute>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+<xs:element xmlns="http://www.mulesoft.org/schema/mule/metadata" xmlns:mule="http://www.mulesoft.org/schema/mule/core" type="ShouldInheritOperationResolversType" substitutionGroup="mule:abstract-message-processor" name="should-inherit-operation-resolvers"></xs:element>
+<xs:complexType name="ShouldInheritOperationResolversType">
+    <xs:complexContent>
+        <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core" base="mule:abstractMessageProcessorType">
+            <xs:attribute type="mule:substitutableName" use="optional" name="config-ref">
+                <xs:annotation>
+                    <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute type="mule:expressionString" use="required" name="type"></xs:attribute>
+            <xs:attribute type="mule:expressionObject" use="optional" name="content"></xs:attribute>
+            <xs:attribute type="xs:string" use="optional" name="target">
+                <xs:annotation>
+                    <xs:documentation>The name of a variable on which the operation's output will be placed</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+<xs:element xmlns="http://www.mulesoft.org/schema/mule/metadata" xmlns:mule="http://www.mulesoft.org/schema/mule/core" type="SimpleMultiLevelKeyResolverType" substitutionGroup="mule:abstract-message-processor" name="simple-multi-level-key-resolver"></xs:element>
+<xs:complexType name="SimpleMultiLevelKeyResolverType">
+    <xs:complexContent>
+        <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core" base="mule:abstractMessageProcessorType">
+            <xs:attribute type="mule:substitutableName" use="optional" name="config-ref">
+                <xs:annotation>
+                    <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute type="mule:expressionString" use="required" name="continent"></xs:attribute>
+            <xs:attribute type="mule:expressionString" use="required" name="country"></xs:attribute>
+            <xs:attribute type="mule:expressionString" use="required" name="city"></xs:attribute>
+            <xs:attribute type="mule:expressionObject" use="optional" name="content"></xs:attribute>
+            <xs:attribute type="xs:string" use="optional" name="target">
+                <xs:annotation>
+                    <xs:documentation>The name of a variable on which the operation's output will be placed</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+<xs:element xmlns:extension="http://www.mulesoft.org/schema/mule/extension" substitutionGroup="extension:abstractConnectionProvider" name="connection">
+    <xs:complexType>
+        <xs:complexContent>
+            <xs:extension base="extension:abstractConnectionProviderType">
+                <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                    <xs:element xmlns:mule="http://www.mulesoft.org/schema/mule/core" minOccurs="0" maxOccurs="1" ref="mule:abstract-reconnection-strategy"></xs:element>
+                </xs:sequence>
+                <xs:attribute xmlns:mule="http://www.mulesoft.org/schema/mule/core" type="mule:substitutableBoolean" use="optional" name="disableValidation"></xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+</xs:element>
+<xs:element xmlns="http://www.mulesoft.org/schema/mule/metadata" xmlns:mule="http://www.mulesoft.org/schema/mule/core" type="MetadataSourceType" substitutionGroup="mule:abstract-message-source" name="metadata-source"></xs:element>
+<xs:complexType name="MetadataSourceType">
+    <xs:complexContent>
+        <xs:extension xmlns:mule="http://www.mulesoft.org/schema/mule/core" base="mule:abstractMessageSourceType">
+            <xs:sequence>
+                <xs:element minOccurs="0" maxOccurs="1" ref="mule:abstract-reconnection-strategy"></xs:element>
+            </xs:sequence>
+            <xs:attribute type="mule:substitutableName" use="optional" name="config-ref">
+                <xs:annotation>
+                    <xs:documentation>Specify which configuration to use for this invocation.</xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute type="mule:expressionString" use="required" name="type"></xs:attribute>
+        </xs:extension>
+    </xs:complexContent>
+</xs:complexType>
+</xs:schema>

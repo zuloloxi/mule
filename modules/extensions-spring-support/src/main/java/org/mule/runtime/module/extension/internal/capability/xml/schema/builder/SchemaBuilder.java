@@ -267,11 +267,9 @@ public final class SchemaBuilder
 
     public SchemaBuilder registerMessageSource(SourceModel sourceModel)
     {
-
         sourceSchemaDelegate.registerMessageSource(schema, sourceModel);
         return this;
     }
-
 
     void registerParameters(ExtensionType type, ExplicitGroup choice, Collection<ParameterModel> parameterModels)
     {

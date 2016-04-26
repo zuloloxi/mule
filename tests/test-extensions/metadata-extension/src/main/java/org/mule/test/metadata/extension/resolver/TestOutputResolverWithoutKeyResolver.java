@@ -13,7 +13,7 @@ import org.mule.runtime.api.metadata.MetadataKey;
 import org.mule.runtime.api.metadata.MetadataResolvingException;
 import org.mule.runtime.api.metadata.resolving.MetadataOutputResolver;
 
-public class TestOutputResolverWithoutKeyResolver implements MetadataOutputResolver
+public class TestOutputResolverWithoutKeyResolver implements MetadataOutputResolver<MetadataKey>
 {
 
     @Override

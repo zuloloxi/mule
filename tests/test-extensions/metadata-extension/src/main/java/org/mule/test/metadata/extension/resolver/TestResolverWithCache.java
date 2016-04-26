@@ -28,7 +28,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 
-public class TestResolverWithCache implements MetadataContentResolver, MetadataOutputResolver, MetadataKeysResolver
+public class TestResolverWithCache implements MetadataContentResolver<MetadataKey>, MetadataOutputResolver<MetadataKey>, MetadataKeysResolver
 {
 
     public static final String MISSING_ELEMENT_ERROR_MESSAGE = "Missing element in the cache. There was no element in the cache for the key: " + BRAND;

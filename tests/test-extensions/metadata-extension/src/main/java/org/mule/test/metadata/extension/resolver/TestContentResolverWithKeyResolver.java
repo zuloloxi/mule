@@ -16,7 +16,7 @@ import org.mule.metadata.api.model.MetadataType;
 
 import java.util.List;
 
-public class TestContentResolverWithKeyResolver implements MetadataKeysResolver, MetadataContentResolver
+public class TestContentResolverWithKeyResolver implements MetadataKeysResolver, MetadataContentResolver<MetadataKey>
 {
 
     @Override

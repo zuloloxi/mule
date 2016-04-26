@@ -53,6 +53,7 @@ import org.mule.runtime.extension.api.annotation.Sources;
 import org.mule.runtime.extension.api.annotation.SubTypeMapping;
 import org.mule.runtime.extension.api.annotation.SubTypesMapping;
 import org.mule.runtime.extension.api.annotation.connector.Providers;
+import org.mule.runtime.extension.api.annotation.metadata.MetadataKeyId;
 import org.mule.runtime.extension.api.annotation.metadata.MetadataScope;
 import org.mule.runtime.extension.api.annotation.param.Connection;
 import org.mule.runtime.extension.api.annotation.param.Optional;
@@ -331,7 +332,7 @@ public final class AnnotationsBasedDescriber implements Describer
                 .withModelProperty(new ImplementingTypeModelProperty(sourceType))
                 .withMetadataResolverFactory(getMetadataResolverFactoryFromClass(extensionType, sourceType));
 
-        declareSingleParameters(getParameterFields(sourceType), source, (ModelPropertyContributor) MuleExtensionAnnotationParser::parseMetadataAnnotations);
+        declareSingleParameters(getParameterFields(sourceType), source);
         declareParameterGroups(sourceType, source);
 
     }
@@ -442,6 +443,7 @@ public final class AnnotationsBasedDescriber implements Describer
                 .map(field -> {
                     final ParameterDeclarer describe = getFieldDescriber(field).describe(field, parameterDeclarer);
                     Arrays.stream(contributors).forEach(contributor -> contributor.contribute(field, describe));
+                    parseMetadataAnnotations(field, describe);
                     return describe;
                 })
                 .collect(Collectors.toCollection(LinkedHashSet::new));
@@ -602,6 +604,7 @@ public final class AnnotationsBasedDescriber implements Describer
         //TODO: MULE-9220
         checkAnnotationIsNotUsedMoreThanOnce(method, operation, UseConfig.class);
         checkAnnotationIsNotUsedMoreThanOnce(method, operation, Connection.class);
+        checkAnnotationIsNotUsedMoreThanOnce(method, operation, MetadataKeyId.class);
 
         for (ParsedParameter parsedParameter : descriptors)
         {
@@ -623,8 +626,8 @@ public final class AnnotationsBasedDescriber implements Describer
                 }
 
                 parseMetadataAnnotations(parsedParameter, parameter);
-
             }
+
 
             Connection connectionAnnotation = parsedParameter.getAnnotation(Connection.class);
             if (connectionAnnotation != null)
@@ -669,7 +672,6 @@ public final class AnnotationsBasedDescriber implements Describer
 
     private interface ModelPropertyContributor
     {
-
         void contribute(AnnotatedElement annotatedElement, HasModelProperties descriptor);
     }
 }

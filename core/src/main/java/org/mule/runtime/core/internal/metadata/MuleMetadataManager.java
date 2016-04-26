@@ -7,13 +7,6 @@
 package org.mule.runtime.core.internal.metadata;
 
 import static org.mule.runtime.core.config.i18n.MessageFactory.createStaticMessage;
-
-import org.mule.runtime.core.api.MuleContext;
-import org.mule.runtime.core.api.MuleRuntimeException;
-import org.mule.runtime.core.api.config.ConfigurationInstanceNotification;
-import org.mule.runtime.core.api.context.notification.CustomNotificationListener;
-import org.mule.runtime.core.api.lifecycle.Initialisable;
-import org.mule.runtime.core.api.lifecycle.InitialisationException;
 import org.mule.runtime.api.metadata.ComponentId;
 import org.mule.runtime.api.metadata.MetadataAware;
 import org.mule.runtime.api.metadata.MetadataCache;
@@ -21,7 +14,14 @@ import org.mule.runtime.api.metadata.MetadataKey;
 import org.mule.runtime.api.metadata.MetadataManager;
 import org.mule.runtime.api.metadata.MetadataResolvingException;
 import org.mule.runtime.api.metadata.descriptor.ComponentMetadataDescriptor;
+import org.mule.runtime.api.metadata.descriptor.MetadataKeyDescriptor;
 import org.mule.runtime.api.metadata.resolving.MetadataResult;
+import org.mule.runtime.core.api.MuleContext;
+import org.mule.runtime.core.api.MuleRuntimeException;
+import org.mule.runtime.core.api.config.ConfigurationInstanceNotification;
+import org.mule.runtime.core.api.context.notification.CustomNotificationListener;
+import org.mule.runtime.core.api.lifecycle.Initialisable;
+import org.mule.runtime.core.api.lifecycle.InitialisationException;
 import org.mule.runtime.core.api.source.MessageSource;
 import org.mule.runtime.core.construct.Flow;
 import org.mule.runtime.core.context.notification.NotificationException;
@@ -107,9 +107,18 @@ public class MuleMetadataManager implements MetadataManager, Initialisable
      * {@inheritDoc}
      */
     @Override
-    public MetadataResult<List<MetadataKey>> getMetadataKeys(ComponentId componentId)
+    public MetadataResult<List<MetadataKeyDescriptor>> getMetadataKeys(ComponentId componentId)
     {
         return exceptionHandledMetadataFetch(componentId, MetadataAware::getMetadataKeys, EXCEPTION_RESOLVING_METADATA_KEYS);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public MetadataResult<MetadataKeyDescriptor> getMetadataKeyChilds(ComponentId componentId, MetadataKey partial)
+    {
+        return exceptionHandledMetadataFetch(componentId, processor -> processor.getMetadataKeyChilds(partial), EXCEPTION_RESOLVING_METADATA_KEYS);
     }
 
     /**
@@ -214,6 +223,5 @@ public class MuleMetadataManager implements MetadataManager, Initialisable
     private interface MetadataDelegate<T>
     {
         MetadataResult<T> get(MetadataAware processor) throws MetadataResolvingException;
-
     }
 }

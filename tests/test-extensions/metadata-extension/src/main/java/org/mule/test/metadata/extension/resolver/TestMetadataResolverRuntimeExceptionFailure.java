@@ -16,7 +16,7 @@ import org.mule.metadata.api.model.MetadataType;
 
 import java.util.List;
 
-public class TestMetadataResolverRuntimeExceptionFailure implements MetadataKeysResolver, MetadataContentResolver, MetadataOutputResolver
+public class TestMetadataResolverRuntimeExceptionFailure implements MetadataKeysResolver, MetadataContentResolver<MetadataKey>, MetadataOutputResolver<MetadataKey>
 {
 
     public List<MetadataKey> getMetadataKeys(MetadataContext context) throws MetadataResolvingException

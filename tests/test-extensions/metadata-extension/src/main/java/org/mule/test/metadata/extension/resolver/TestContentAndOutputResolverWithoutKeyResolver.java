@@ -13,7 +13,7 @@ import org.mule.runtime.api.metadata.resolving.MetadataContentResolver;
 import org.mule.runtime.api.metadata.resolving.MetadataOutputResolver;
 import org.mule.metadata.api.model.MetadataType;
 
-public class TestContentAndOutputResolverWithoutKeyResolver implements MetadataContentResolver, MetadataOutputResolver
+public class TestContentAndOutputResolverWithoutKeyResolver implements MetadataContentResolver<MetadataKey>, MetadataOutputResolver<MetadataKey>
 {
 
     @Override

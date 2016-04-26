@@ -8,9 +8,10 @@ package org.mule.runtime.module.extension.internal.runtime.executor;
 
 import static org.apache.commons.lang.ArrayUtils.isEmpty;
 import static org.mule.runtime.module.extension.internal.introspection.describer.MuleExtensionAnnotationParser.toMap;
-import org.mule.runtime.core.api.MuleEvent;
 import org.mule.runtime.api.temporary.MuleMessage;
+import org.mule.runtime.core.api.MuleEvent;
 import org.mule.runtime.extension.api.annotation.ParameterGroup;
+import org.mule.runtime.extension.api.annotation.metadata.MetadataKeyId;
 import org.mule.runtime.extension.api.annotation.param.Connection;
 import org.mule.runtime.extension.api.annotation.param.UseConfig;
 import org.mule.runtime.extension.api.introspection.operation.OperationModel;
@@ -95,7 +96,7 @@ final class MethodArgumentResolverDelegate implements ArgumentResolverDelegate
             {
                 argumentResolver = MESSAGE_ARGUMENT_RESOLVER;
             }
-            else if (annotations.containsKey(ParameterGroup.class))
+            else if (annotations.containsKey(ParameterGroup.class) || annotations.containsKey(MetadataKeyId.class))
             {
                 argumentResolver = new ParameterGroupArgumentResolver(parameterType);
             }

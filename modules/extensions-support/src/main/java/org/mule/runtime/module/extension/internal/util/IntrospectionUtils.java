@@ -9,10 +9,10 @@ package org.mule.runtime.module.extension.internal.util;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang.StringUtils.EMPTY;
-import static org.mule.runtime.extension.api.introspection.parameter.ExpressionSupport.SUPPORTED;
 import static org.mule.metadata.java.JavaTypeLoader.JAVA;
 import static org.mule.metadata.java.utils.JavaTypeUtils.getType;
 import static org.mule.runtime.core.util.Preconditions.checkArgument;
+import static org.mule.runtime.extension.api.introspection.parameter.ExpressionSupport.SUPPORTED;
 import static org.mule.runtime.module.extension.internal.introspection.describer.MuleExtensionAnnotationParser.getMemberName;
 import static org.reflections.ReflectionUtils.getAllFields;
 import static org.reflections.ReflectionUtils.getAllMethods;
@@ -20,11 +20,22 @@ import static org.reflections.ReflectionUtils.withAnnotation;
 import static org.reflections.ReflectionUtils.withModifier;
 import static org.reflections.ReflectionUtils.withName;
 import static org.reflections.ReflectionUtils.withTypeAssignableTo;
+import org.mule.metadata.api.ClassTypeLoader;
+import org.mule.metadata.api.builder.BaseTypeBuilder;
+import org.mule.metadata.api.model.AnyType;
+import org.mule.metadata.api.model.MetadataType;
+import org.mule.metadata.api.model.NullType;
+import org.mule.metadata.java.utils.JavaTypeUtils;
 import org.mule.runtime.api.temporary.MuleMessage;
+import org.mule.runtime.core.util.ArrayUtils;
+import org.mule.runtime.core.util.ClassUtils;
+import org.mule.runtime.core.util.CollectionUtils;
+import org.mule.runtime.core.util.collection.ImmutableListCollector;
 import org.mule.runtime.extension.api.annotation.Alias;
 import org.mule.runtime.extension.api.annotation.Expression;
 import org.mule.runtime.extension.api.annotation.Parameter;
 import org.mule.runtime.extension.api.annotation.ParameterGroup;
+import org.mule.runtime.extension.api.annotation.metadata.MetadataKeyId;
 import org.mule.runtime.extension.api.annotation.param.Ignore;
 import org.mule.runtime.extension.api.annotation.param.Optional;
 import org.mule.runtime.extension.api.exception.IllegalModelDefinitionException;
@@ -32,18 +43,9 @@ import org.mule.runtime.extension.api.introspection.ComponentModel;
 import org.mule.runtime.extension.api.introspection.declaration.fluent.ParameterDeclaration;
 import org.mule.runtime.extension.api.introspection.parameter.ExpressionSupport;
 import org.mule.runtime.extension.api.introspection.parameter.ParameterModel;
-import org.mule.runtime.extension.api.introspection.property.MetadataModelProperty;
+import org.mule.runtime.extension.api.introspection.property.MetadataContentModelProperty;
+import org.mule.runtime.extension.api.introspection.property.MetadataKeyIdModelProperty;
 import org.mule.runtime.extension.api.runtime.source.Source;
-import org.mule.metadata.api.ClassTypeLoader;
-import org.mule.metadata.api.builder.BaseTypeBuilder;
-import org.mule.metadata.api.model.AnyType;
-import org.mule.metadata.api.model.MetadataType;
-import org.mule.metadata.api.model.NullType;
-import org.mule.metadata.java.utils.JavaTypeUtils;
-import org.mule.runtime.core.util.ArrayUtils;
-import org.mule.runtime.core.util.ClassUtils;
-import org.mule.runtime.core.util.CollectionUtils;
-import org.mule.runtime.core.util.collection.ImmutableListCollector;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
@@ -59,6 +61,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -339,13 +342,17 @@ public final class IntrospectionUtils
 
     public static Collection<Field> getParameterFields(Class<?> extensionType)
     {
-
         return getAnnotatedFields(extensionType, Parameter.class);
     }
 
     public static Collection<Field> getParameterGroupFields(Class<?> extensionType)
     {
-        return getAnnotatedFields(extensionType, ParameterGroup.class);
+        List<Field> fields = new ArrayList<>();
+        List<Field> parameterGroups = getAnnotatedFields(extensionType, ParameterGroup.class);
+        List<Field> metadataKeyIds = getAnnotatedFields(extensionType, MetadataKeyId.class);
+        fields.addAll(parameterGroups);
+        fields.addAll(metadataKeyIds);
+        return fields;
     }
 
     public static Collection<Method> getOperationMethods(Class<?> declaringClass)
@@ -437,17 +444,15 @@ public final class IntrospectionUtils
     public static java.util.Optional<ParameterModel> getContentParameter(ComponentModel component)
     {
         return component.getParameterModels().stream()
-                .filter(p -> p.getModelProperty(MetadataModelProperty.class).isPresent() &&
-                             p.getModelProperty(MetadataModelProperty.class).get().isContent())
+                .filter(p -> p.getModelProperty(MetadataContentModelProperty.class).isPresent())
                 .findFirst();
     }
 
-    public static java.util.Optional<ParameterModel> getMetadataKeyParam(ComponentModel component)
+    public static List<ParameterModel> getMetadataKeyId(ComponentModel component)
     {
         return component.getParameterModels().stream()
-                .filter(p -> p.getModelProperty(MetadataModelProperty.class).isPresent() &&
-                             p.getModelProperty(MetadataModelProperty.class).get().isMetadataKeyParam())
-                .findFirst();
+                .filter(p -> p.getModelProperty(MetadataKeyIdModelProperty.class).isPresent())
+                .collect(toList());
     }
 
     /**
