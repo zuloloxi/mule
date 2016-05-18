@@ -8,7 +8,6 @@
 package org.mule.runtime.core.transformers.simple;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-
 import org.mule.functional.junit4.FunctionalTestCase;
 import org.mule.runtime.api.metadata.DataType;
 import org.mule.runtime.core.api.MuleMessage;

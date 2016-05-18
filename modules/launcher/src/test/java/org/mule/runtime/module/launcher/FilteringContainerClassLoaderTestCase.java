@@ -10,6 +10,7 @@ package org.mule.runtime.module.launcher;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
+import org.mule.runtime.container.FilteringContainerClassLoader;
 import org.mule.runtime.module.artifact.classloader.EnumerationMatcher;
 import org.mule.runtime.module.artifact.classloader.FilteringArtifactClassLoader;
 import org.mule.runtime.module.artifact.classloader.FilteringArtifactClassLoaderTestCase;

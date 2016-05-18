@@ -7,9 +7,11 @@
 package org.mule.functional.junit4;
 
 import static org.junit.Assert.fail;
-import org.mule.runtime.config.spring.SpringXmlConfigurationBuilder;
 import org.mule.functional.functional.FlowAssert;
 import org.mule.functional.functional.FunctionalTestComponent;
+import org.mule.runtime.config.spring.SpringXmlConfigurationBuilder;
+import org.mule.runtime.container.ContainerClassLoaderFilterFactory;
+import org.mule.runtime.container.FilteringContainerClassLoader;
 import org.mule.runtime.core.api.MuleEvent;
 import org.mule.runtime.core.api.MuleException;
 import org.mule.runtime.core.api.component.Component;
@@ -26,11 +28,20 @@ import org.mule.runtime.core.construct.AbstractPipeline;
 import org.mule.runtime.core.construct.Flow;
 import org.mule.runtime.core.processor.chain.SubflowInterceptingChainLifecycleWrapper;
 import org.mule.runtime.core.util.IOUtils;
+import org.mule.runtime.module.artifact.classloader.ArtifactClassLoader;
+import org.mule.runtime.module.artifact.classloader.MuleArtifactClassLoader;
+import org.mule.runtime.module.artifact.classloader.MuleClassLoaderLookupPolicy;
 import org.mule.tck.junit4.AbstractMuleContextTestCase;
+
+import com.google.common.collect.ImmutableSet;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.After;
 
@@ -43,6 +54,9 @@ import org.junit.After;
  */
 public abstract class FunctionalTestCase extends AbstractMuleContextTestCase
 {
+
+    private FilteringContainerClassLoader executionClassLoader;
+
     public FunctionalTestCase()
     {
         super();
@@ -163,6 +177,33 @@ public abstract class FunctionalTestCase extends AbstractMuleContextTestCase
     protected FlowConstruct getFlowConstruct(String flowName) throws Exception
     {
         return muleContext.getRegistry().lookupFlowConstruct(flowName);
+    }
+
+    //TODO(pablo.kraan): move this constant to another place in container module
+    public static final Set<String> BOOT_PACKAGES = ImmutableSet.of(
+            "java.", "javax.", "org.apache.xerces", "org.mule.mvel2",
+            "org.apache.logging.log4j", "org.slf4j", "org.apache.commons.logging", "org.apache.log4j",
+            //TODO(pablo.kraan): check why these apckages are required
+            "org.dom4j", "org.w3c.dom", "com.sun", "sun", "org.springframework"
+    );
+
+    public static final Set<String> SYSTEM_PACKAGES = ImmutableSet.of(
+            "org.mule.runtime", "com.mulesoft.mule.runtime"
+    );
+
+    @Override
+    protected ClassLoader getExecutionClassLoader()
+    {
+        if (executionClassLoader == null)
+        {
+            final Set<String> parentOnlyPackages = new HashSet<>(BOOT_PACKAGES);
+            parentOnlyPackages.addAll(SYSTEM_PACKAGES);
+            final MuleClassLoaderLookupPolicy containerLookupPolicy = new MuleClassLoaderLookupPolicy(Collections.emptyMap(), parentOnlyPackages);
+            final ArtifactClassLoader containerClassLoader = new MuleArtifactClassLoader("mule", new URL[0], getClass().getClassLoader(), containerLookupPolicy);
+
+            executionClassLoader = new FilteringContainerClassLoader(containerClassLoader, new ContainerClassLoaderFilterFactory().create(BOOT_PACKAGES));
+        }
+        return executionClassLoader;
     }
 
     protected String loadResourceAsString(String resourceName) throws IOException

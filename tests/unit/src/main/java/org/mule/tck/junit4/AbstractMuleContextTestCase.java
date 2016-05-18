@@ -233,8 +233,17 @@ public abstract class AbstractMuleContextTestCase extends AbstractMuleTestCase
             {
                 ((DefaultMuleConfiguration) context.getConfiguration()).setShutdownTimeout(0);
             }
+            finally
+            {
+               Thread.currentThread().setContextClassLoader(originalContextClassLoader);
+            }
         }
         return context;
+    }
+
+    protected  ClassLoader getExecutionClassLoader()
+    {
+        return this.getClass().getClassLoader();
     }
 
     //This sohuldn't be needed by Test cases but can be used by base testcases that wish to add further builders when

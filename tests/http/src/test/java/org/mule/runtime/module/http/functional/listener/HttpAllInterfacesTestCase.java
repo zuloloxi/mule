@@ -9,6 +9,7 @@ package org.mule.runtime.module.http.functional.listener;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import org.mule.functional.junit4.FunctionalTestCase;
+import org.mule.functional.junit4.MuleClassloaderTestRunner;
 import org.mule.tck.junit4.rule.DynamicPort;
 
 import java.io.IOException;
@@ -17,7 +18,9 @@ import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
+@RunWith(MuleClassloaderTestRunner.class)
 public class HttpAllInterfacesTestCase extends FunctionalTestCase
 {
 

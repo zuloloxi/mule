@@ -16,6 +16,7 @@ import java.util.Properties;
  */
 public interface RegistryBootstrapDiscoverer
 {
+    //TODO(pablo.kraan): rename to PropertiesDiscoverer and move to another package
 
     /**
      * Collects the Properties to be used in an ordered way.

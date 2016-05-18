@@ -39,6 +39,17 @@ public class ClassPathRegistryBootstrapDiscoverer implements RegistryBootstrapDi
     private static final String BOOTSTRAP_PROPERTIES = "META-INF/services/org/mule/runtime/core/config/registry-bootstrap.properties";
 
     private final transient Log logger = LogFactory.getLog(getClass());
+    private final String bootstrapProperties;
+
+    public ClassPathRegistryBootstrapDiscoverer()
+    {
+        bootstrapProperties = BOOTSTRAP_PROPERTIES;
+    }
+
+    public ClassPathRegistryBootstrapDiscoverer(String bootstrapProperties)
+    {
+        this.bootstrapProperties = bootstrapProperties;
+    }
 
     /**
      * {@inheritDoc}
@@ -48,7 +59,7 @@ public class ClassPathRegistryBootstrapDiscoverer implements RegistryBootstrapDi
     {
         List<Properties> bootstrapsProperties = new LinkedList<Properties>();
 
-        Enumeration<URL> allPropertiesResources = ClassUtils.getResources(BOOTSTRAP_PROPERTIES, getClass());
+        Enumeration<URL> allPropertiesResources = ClassUtils.getResources(bootstrapProperties, getClass());
         while (allPropertiesResources.hasMoreElements())
         {
             URL propertiesResource = allPropertiesResources.nextElement();

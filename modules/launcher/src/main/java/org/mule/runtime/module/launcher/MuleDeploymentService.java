@@ -8,6 +8,8 @@ package org.mule.runtime.module.launcher;
 
 import static org.mule.runtime.module.launcher.ArtifactDeploymentTemplate.NOP_ARTIFACT_DEPLOYMENT_TEMPLATE;
 import static org.mule.runtime.module.launcher.DefaultArchiveDeployer.ZIP_FILE_SUFFIX;
+import org.mule.runtime.container.ContainerClassLoaderFilterFactory;
+import org.mule.runtime.container.FilteringContainerClassLoader;
 import org.mule.runtime.core.util.Preconditions;
 import org.mule.runtime.module.artifact.classloader.ArtifactClassLoader;
 import org.mule.runtime.module.artifact.classloader.ArtifactClassLoaderFactory;
@@ -39,6 +41,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -57,10 +60,18 @@ public class MuleDeploymentService implements DeploymentService
 {
 
     //TODO(pablo.kraan): MULE-9524: Add a way to configure system packages used on class loading lookup
-    public static final Set<String> SYSTEM_PACKAGES = ImmutableSet.of(
-            "java.", "org.mule.runtime", "com.mulesoft.mule.runtime",
-            "org.apache.logging.log4j", "org.slf4j", "org.apache.commons.logging", "org.apache.log4j"
+    public static final Set<String> BOOT_PACKAGES = ImmutableSet.of(
+            "java.", "javax.", "org.apache.xerces", "org.mule.mvel2",
+            "org.apache.logging.log4j", "org.slf4j", "org.apache.commons.logging", "org.apache.log4j",
+            //TODO(pablo.kraan): check why these apckages are required
+            "org.dom4j", "org.w3c.dom", "com.sun", "sun", "org.springframework"
+
     );
+
+    public static final Set<String> SYSTEM_PACKAGES = ImmutableSet.of(
+            "org.mule.runtime", "com.mulesoft.mule.runtime"
+    );
+
     public static final String ARTIFACT_ANCHOR_SUFFIX = "-anchor.txt";
     public static final IOFileFilter ZIP_ARTIFACT_FILTER = new AndFileFilter(new SuffixFileFilter(ZIP_FILE_SUFFIX), FileFileFilter.FILE);
 
@@ -112,11 +123,12 @@ public class MuleDeploymentService implements DeploymentService
 
     private FilteringArtifactClassLoader createContainerFilteringClassLoader()
     {
-        final MuleClassLoaderLookupPolicy containerLookupPolicy = new MuleClassLoaderLookupPolicy(Collections.emptyMap(), SYSTEM_PACKAGES);
+        final Set<String> parentOnlyPackages = new HashSet<>(BOOT_PACKAGES);
+        parentOnlyPackages.addAll(SYSTEM_PACKAGES);
+        final MuleClassLoaderLookupPolicy containerLookupPolicy = new MuleClassLoaderLookupPolicy(Collections.emptyMap(), parentOnlyPackages);
         final ArtifactClassLoader containerClassLoader = new MuleArtifactClassLoader("mule", new URL[0], getClass().getClassLoader(), containerLookupPolicy);
 
-        //TODO(pablo.kraan): NullClassLoaderFilter is used until MULE-9430 is implemented
-        return new FilteringContainerClassLoader(containerClassLoader, new PassThroughClassLoaderFilter());
+        return new FilteringContainerClassLoader(containerClassLoader, new ContainerClassLoaderFilterFactory().create(BOOT_PACKAGES));
     }
 
     @Override
