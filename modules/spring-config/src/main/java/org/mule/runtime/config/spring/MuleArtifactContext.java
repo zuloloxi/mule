@@ -11,9 +11,10 @@ import static org.mule.runtime.core.util.Preconditions.checkArgument;
 import static org.springframework.context.annotation.AnnotationConfigUtils.AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME;
 import static org.springframework.context.annotation.AnnotationConfigUtils.CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME;
 import static org.springframework.context.annotation.AnnotationConfigUtils.REQUIRED_ANNOTATION_PROCESSOR_BEAN_NAME;
+import org.mule.runtime.config.spring.dsl.api.ComponentBuildingDefinitionProvider;
+import org.mule.runtime.config.spring.dsl.model.ComponentBuildingDefinitionRegistry;
 import org.mule.runtime.config.spring.dsl.spring.BeanDefinitionFactory;
 import org.mule.runtime.config.spring.editors.MulePropertyEditorRegistrar;
-import org.mule.runtime.config.spring.dsl.model.ComponentBuildingDefinitionRegistry;
 import org.mule.runtime.config.spring.processors.DiscardedOptionalBeanPostProcessor;
 import org.mule.runtime.config.spring.processors.LifecycleStatePostProcessor;
 import org.mule.runtime.config.spring.processors.MuleInjectorProcessor;
@@ -21,7 +22,6 @@ import org.mule.runtime.config.spring.processors.PostRegistrationActionsPostProc
 import org.mule.runtime.config.spring.util.LaxInstantiationStrategyWrapper;
 import org.mule.runtime.core.api.MuleContext;
 import org.mule.runtime.core.config.ConfigResource;
-import org.mule.runtime.config.spring.dsl.api.ComponentBuildingDefinitionProvider;
 import org.mule.runtime.core.registry.MuleRegistryHelper;
 import org.mule.runtime.core.util.IOUtils;
 
@@ -33,17 +33,21 @@ import org.springframework.beans.factory.annotation.RequiredAnnotationBeanPostPr
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.BeanDefinitionReader;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.CglibSubclassingInstantiationStrategy;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.beans.factory.xml.DefaultNamespaceHandlerResolver;
+import org.springframework.beans.factory.xml.DelegatingEntityResolver;
+import org.springframework.beans.factory.xml.NamespaceHandlerResolver;
+import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.annotation.ConfigurationClassPostProcessor;
 import org.springframework.context.annotation.ContextAnnotationAutowireCandidateResolver;
 import org.springframework.context.support.AbstractXmlApplicationContext;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.xml.sax.EntityResolver;
 
 /**
  * <code>MuleArtifactContext</code> is a simple extension application context
@@ -194,7 +198,18 @@ public class MuleArtifactContext extends AbstractXmlApplicationContext
     @Override
     protected void loadBeanDefinitions(DefaultListableBeanFactory beanFactory) throws IOException
     {
-        BeanDefinitionReader beanDefinitionReader = createBeanDefinitionReader(beanFactory);
+        XmlBeanDefinitionReader beanDefinitionReader = createBeanDefinitionReader(beanFactory);
+
+        //TODO(pablo.kraan): pass artifact classloader
+        beanDefinitionReader.setNamespaceHandlerResolver(createNamespaceHandlerResolver(null));
+        beanDefinitionReader.setEntityResolver(createEntityResolver(null));
+
+        // Allow a subclass to provide custom initialisation of the reader,
+        // then proceed with actually loading the bean definitions.
+        initBeanDefinitionReader(beanDefinitionReader);
+        //TODO(pablo.kraan): this was used on gemini, removed as it is used below
+        //loadBeanDefinitions(beanDefinitionReader);
+
         // Communicate mule context to parsers
         try
         {
@@ -207,7 +222,7 @@ public class MuleArtifactContext extends AbstractXmlApplicationContext
         }
     }
 
-    protected BeanDefinitionReader createBeanDefinitionReader(DefaultListableBeanFactory beanFactory)
+    protected XmlBeanDefinitionReader createBeanDefinitionReader(DefaultListableBeanFactory beanFactory)
     {
         beanDefinitionReader = new MuleXmlBeanDefinitionReader(beanFactory, beanDefinitionFactory);
         // annotate parsed elements with metadata
@@ -218,11 +233,16 @@ public class MuleArtifactContext extends AbstractXmlApplicationContext
         beanDefinitionReader.setProblemReporter(new MissingParserProblemReporter());
         registerAnnotationConfigProcessors(beanDefinitionReader.getRegistry(), null);
 
+        // Configure the bean definition reader with the context
+        // resource loading environment.
+        beanDefinitionReader.setResourceLoader(this);
+
         return beanDefinitionReader;
     }
 
     protected MuleDocumentLoader createLoader()
     {
+        //TODO(pablo.kraan): in gemini uses "new BlueprintDocumentLoader()"
         return new MuleDocumentLoader();
     }
 
@@ -300,5 +320,39 @@ public class MuleArtifactContext extends AbstractXmlApplicationContext
     public static ThreadLocal<MuleContext> getCurrentMuleContext()
     {
         return currentMuleContext;
+    }
+
+    private NamespaceHandlerResolver createNamespaceHandlerResolver(ClassLoader bundleClassLoader) {
+        //Assert.notNull(bundleContext, "bundleContext is required");
+        // create local namespace resolver
+        // we'll use the default resolver which uses the bundle local class-loader
+        NamespaceHandlerResolver localNamespaceResolver = new DefaultNamespaceHandlerResolver(bundleClassLoader);
+
+        // hook in OSGi namespace resolver
+        NamespaceHandlerResolver osgiServiceNamespaceResolver =
+                //lookupNamespaceHandlerResolver(bundleContext, filter, localNamespaceResolver);
+                NamespacePlugins.instance;
+
+        DelegatedNamespaceHandlerResolver delegate = new DelegatedNamespaceHandlerResolver();
+        //delegate.addNamespaceHandler(localNamespaceResolver, "LocalNamespaceResolver for bundle " + getApplicationName());
+        delegate.addNamespaceHandler(osgiServiceNamespaceResolver, "OSGi Service resolver");
+
+        return delegate;
+    }
+
+    private EntityResolver createEntityResolver(ClassLoader bundleClassLoader) {
+        //Assert.notNull(bundleContext, "bundleContext is required");
+        // create local namespace resolver
+        EntityResolver localEntityResolver = new DelegatingEntityResolver(bundleClassLoader);
+        // hook in OSGi namespace resolver
+        EntityResolver osgiServiceEntityResolver =  NamespacePlugins.instance; //lookupEntityResolver(bundleContext, filter, localEntityResolver);
+
+        ChainedEntityResolver delegate = new ChainedEntityResolver();
+        delegate.addEntityResolver(localEntityResolver, "LocalEntityResolver for bundle " + getApplicationName());
+
+        // hook in OSGi namespace resolver
+        delegate.addEntityResolver(osgiServiceEntityResolver, "OSGi Service resolver");
+
+        return delegate;
     }
 }

@@ -8,15 +8,13 @@ package org.mule.runtime.module.launcher;
 
 import static org.mule.runtime.module.launcher.ArtifactDeploymentTemplate.NOP_ARTIFACT_DEPLOYMENT_TEMPLATE;
 import static org.mule.runtime.module.launcher.DefaultArchiveDeployer.ZIP_FILE_SUFFIX;
-import org.mule.runtime.container.ContainerClassLoaderFilterFactory;
-import org.mule.runtime.container.FilteringContainerClassLoader;
+import org.mule.runtime.config.spring.NamespaceManager;
+import org.mule.runtime.container.ContainerClassLoaderFactory;
 import org.mule.runtime.core.util.Preconditions;
 import org.mule.runtime.module.artifact.classloader.ArtifactClassLoader;
 import org.mule.runtime.module.artifact.classloader.ArtifactClassLoaderFactory;
 import org.mule.runtime.module.artifact.classloader.ArtifactClassLoaderFilterFactory;
 import org.mule.runtime.module.artifact.classloader.FilteringArtifactClassLoader;
-import org.mule.runtime.module.artifact.classloader.MuleArtifactClassLoader;
-import org.mule.runtime.module.artifact.classloader.MuleClassLoaderLookupPolicy;
 import org.mule.runtime.module.launcher.application.Application;
 import org.mule.runtime.module.launcher.application.CompositeApplicationClassLoaderFactory;
 import org.mule.runtime.module.launcher.application.DefaultApplicationFactory;
@@ -34,17 +32,13 @@ import org.mule.runtime.module.launcher.plugin.ApplicationPluginDescriptorFactor
 import org.mule.runtime.module.launcher.util.DebuggableReentrantLock;
 import org.mule.runtime.module.launcher.util.ObservableList;
 
-import com.google.common.collect.ImmutableSet;
-
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -58,19 +52,6 @@ import org.apache.commons.logging.LogFactory;
 
 public class MuleDeploymentService implements DeploymentService
 {
-
-    //TODO(pablo.kraan): MULE-9524: Add a way to configure system packages used on class loading lookup
-    public static final Set<String> BOOT_PACKAGES = ImmutableSet.of(
-            "java.", "javax.", "org.apache.xerces", "org.mule.mvel2",
-            "org.apache.logging.log4j", "org.slf4j", "org.apache.commons.logging", "org.apache.log4j",
-            //TODO(pablo.kraan): check why these apckages are required
-            "org.dom4j", "org.w3c.dom", "com.sun", "sun", "org.springframework"
-
-    );
-
-    public static final Set<String> SYSTEM_PACKAGES = ImmutableSet.of(
-            "org.mule.runtime", "com.mulesoft.mule.runtime"
-    );
 
     public static final String ARTIFACT_ANCHOR_SUFFIX = "-anchor.txt";
     public static final IOFileFilter ZIP_ARTIFACT_FILTER = new AndFileFilter(new SuffixFileFilter(ZIP_FILE_SUFFIX), FileFileFilter.FILE);
@@ -92,10 +73,17 @@ public class MuleDeploymentService implements DeploymentService
     private final DeploymentDirectoryWatcher deploymentDirectoryWatcher;
     private DefaultArchiveDeployer<Application> applicationDeployer;
     private final DomainManager domainManager = new DefaultDomainManager();
+    public static NamespaceManager namespaceManager;
 
     public MuleDeploymentService(ServerPluginClassLoaderManager serverPluginClassLoaderManager)
     {
-        final FilteringArtifactClassLoader apiClassLoader = createContainerFilteringClassLoader();
+        final ContainerClassLoaderFactory containerClassLoaderFactory = new ContainerClassLoaderFactory();
+        final ArtifactClassLoader containerClassLoader = containerClassLoaderFactory.createContainerClassLoader(getClass().getClassLoader());
+
+        namespaceManager = new NamespaceManager(containerClassLoader);
+
+        final FilteringArtifactClassLoader apiClassLoader = containerClassLoaderFactory.createContainerFilteringClassLoader(containerClassLoader);
+
         ArtifactClassLoaderFactory<DomainDescriptor> domainClassLoaderFactory = new DomainClassLoaderFactory(apiClassLoader);
 
         ArtifactClassLoaderFactory applicationClassLoaderFactory = new MuleApplicationClassLoaderFactory(new DefaultNativeLibraryFinderFactory());
@@ -119,16 +107,6 @@ public class MuleDeploymentService implements DeploymentService
                 applicationDeployer, this);
         this.domainDeployer.setDeploymentListener(domainDeploymentListener);
         this.deploymentDirectoryWatcher = new DeploymentDirectoryWatcher(domainDeployer, applicationDeployer, domains, applications, deploymentLock);
-    }
-
-    private FilteringArtifactClassLoader createContainerFilteringClassLoader()
-    {
-        final Set<String> parentOnlyPackages = new HashSet<>(BOOT_PACKAGES);
-        parentOnlyPackages.addAll(SYSTEM_PACKAGES);
-        final MuleClassLoaderLookupPolicy containerLookupPolicy = new MuleClassLoaderLookupPolicy(Collections.emptyMap(), parentOnlyPackages);
-        final ArtifactClassLoader containerClassLoader = new MuleArtifactClassLoader("mule", new URL[0], getClass().getClassLoader(), containerLookupPolicy);
-
-        return new FilteringContainerClassLoader(containerClassLoader, new ContainerClassLoaderFilterFactory().create(BOOT_PACKAGES));
     }
 
     @Override

@@ -9,7 +9,9 @@ package org.mule.functional.junit4;
 import static org.junit.Assert.fail;
 import org.mule.functional.functional.FlowAssert;
 import org.mule.functional.functional.FunctionalTestComponent;
+import org.mule.runtime.config.spring.NamespaceManager;
 import org.mule.runtime.config.spring.SpringXmlConfigurationBuilder;
+import org.mule.runtime.container.ContainerClassLoaderFactory;
 import org.mule.runtime.container.ContainerClassLoaderFilterFactory;
 import org.mule.runtime.container.FilteringContainerClassLoader;
 import org.mule.runtime.core.api.MuleEvent;
@@ -29,18 +31,13 @@ import org.mule.runtime.core.construct.Flow;
 import org.mule.runtime.core.processor.chain.SubflowInterceptingChainLifecycleWrapper;
 import org.mule.runtime.core.util.IOUtils;
 import org.mule.runtime.module.artifact.classloader.ArtifactClassLoader;
-import org.mule.runtime.module.artifact.classloader.MuleArtifactClassLoader;
-import org.mule.runtime.module.artifact.classloader.MuleClassLoaderLookupPolicy;
 import org.mule.tck.junit4.AbstractMuleContextTestCase;
 
 import com.google.common.collect.ImmutableSet;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.After;
@@ -55,7 +52,8 @@ import org.junit.After;
 public abstract class FunctionalTestCase extends AbstractMuleContextTestCase
 {
 
-    private FilteringContainerClassLoader executionClassLoader;
+    private ArtifactClassLoader executionClassLoader;
+    private NamespaceManager namespaceManager;
 
     public FunctionalTestCase()
     {
@@ -196,15 +194,43 @@ public abstract class FunctionalTestCase extends AbstractMuleContextTestCase
     {
         if (executionClassLoader == null)
         {
-            final Set<String> parentOnlyPackages = new HashSet<>(BOOT_PACKAGES);
-            parentOnlyPackages.addAll(SYSTEM_PACKAGES);
-            final MuleClassLoaderLookupPolicy containerLookupPolicy = new MuleClassLoaderLookupPolicy(Collections.emptyMap(), parentOnlyPackages);
-            final ArtifactClassLoader containerClassLoader = new MuleArtifactClassLoader("mule", new URL[0], getClass().getClassLoader(), containerLookupPolicy);
+            final ArtifactClassLoader containerClassLoader = new ContainerClassLoaderFactory().createContainerClassLoader(getClass().getClassLoader());
+            namespaceManager = new NamespaceManager(containerClassLoader);
+            final FilteringContainerClassLoader containerFilteringClassLoader = new FilteringContainerClassLoader(containerClassLoader,  new ContainerClassLoaderFilterFactory().create(BOOT_PACKAGES));
 
-            executionClassLoader = new FilteringContainerClassLoader(containerClassLoader, new ContainerClassLoaderFilterFactory().create(BOOT_PACKAGES));
+            //URL[] additionalLibraries = new URL[0];
+            //try
+            //{
+            //    additionalLibraries = getAdditionalLibraries();
+            //}
+            //catch (MalformedURLException e)
+            //{
+            //    throw new IllegalStateException("Unable to load additional libraries", e);
+            //}
+            //if (additionalLibraries != null)
+            //{
+            //    //TODO(pablo.kraan): review policy used here
+            //   executionClassLoader = new MuleArtifactClassLoader("test", additionalLibraries, containerFilteringClassLoader, containerClassLoader.getClassLoaderLookupPolicy());
+            //}
+            //else
+            //{
+                executionClassLoader = containerFilteringClassLoader;
+            //}
         }
-        return executionClassLoader;
+        return executionClassLoader.getClassLoader();
     }
+
+    ///**
+    // * Provides additional libraries that, in a real deployment, would be
+    // * deployed on a mule application
+    // *
+    // * @return URLs to add to the test, null if no extra library is required
+    // * @throws MalformedURLException
+    // */
+    //protected URL[] getAdditionalLibraries() throws MalformedURLException
+    //{
+    //    return null;
+    //}
 
     protected String loadResourceAsString(String resourceName) throws IOException
     {

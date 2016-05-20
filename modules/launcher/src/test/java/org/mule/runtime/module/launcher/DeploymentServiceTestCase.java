@@ -30,10 +30,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mule.runtime.container.ContainerClassLoaderFactory.SYSTEM_PACKAGES;
 import static org.mule.runtime.core.util.ClassUtils.withContextClassLoader;
 import static org.mule.runtime.module.artifact.classloader.ArtifactClassLoaderFilter.EXPORTED_CLASS_PACKAGES_PROPERTY;
 import static org.mule.runtime.module.artifact.classloader.ArtifactClassLoaderFilter.EXPORTED_RESOURCE_PACKAGES_PROPERTY;
-import static org.mule.runtime.module.launcher.MuleDeploymentService.SYSTEM_PACKAGES;
 import static org.mule.runtime.module.launcher.MuleFoldersUtil.getDomainFolder;
 import static org.mule.runtime.module.launcher.descriptor.PropertiesDescriptorParser.PROPERTY_DOMAIN;
 import static org.mule.runtime.module.launcher.domain.Domain.DEFAULT_DOMAIN_NAME;
@@ -159,6 +159,7 @@ public class DeploymentServiceTestCase extends AbstractMuleContextTestCase
     private final DomainFileBuilder dummyUndeployableDomainFileBuilder = new DomainFileBuilder("dummy-undeployable-domain").definedBy("empty-domain-config.xml").deployedWith("redeployment.enabled", "false");
     private final DomainFileBuilder sharedHttpDomainFileBuilder = new DomainFileBuilder("shared-http-domain").definedBy("shared-http-domain-config.xml");
     private final DomainFileBuilder sharedHttpBundleDomainFileBuilder = new DomainFileBuilder("shared-http-domain").definedBy("shared-http-domain-config.xml").containing(httpAAppFileBuilder).containing(httpBAppFileBuilder);
+    //TODO(pablo.kraan): review this: must include also boot packages beside system ones?
     private final ClassLoaderLookupPolicy containerLookupPolicy = new MuleClassLoaderLookupPolicy(emptyMap(), SYSTEM_PACKAGES);
     private final ArtifactClassLoader containerClassLoader = new MuleArtifactClassLoader("mule", new URL[0], getClass().getClassLoader(), containerLookupPolicy);
 
@@ -216,6 +217,12 @@ public class DeploymentServiceTestCase extends AbstractMuleContextTestCase
         // app resets CCL ref to null and breaks the next test
         Thread.currentThread().setContextClassLoader(ClassLoader.getSystemClassLoader());
     }
+
+    //@Override
+    //public int getTestTimeoutSecs()
+    //{
+    //    return 120000;
+    //}
 
     @Test
     public void deploysAppZipOnStartup() throws Exception
@@ -1329,6 +1336,7 @@ public class DeploymentServiceTestCase extends AbstractMuleContextTestCase
     @Test
     public void deploysAppZipWithExtensionPlugin() throws Exception
     {
+        //TODO(pablo.kraan): should not be required to export /META-INF
         ApplicationPluginFileBuilder extensionPlugin = new ApplicationPluginFileBuilder("extensionPlugin")
                 .usingLibrary("lib/mule-module-hello-4.0-SNAPSHOT.jar")
                 .configuredWith(EXPORTED_RESOURCE_PACKAGES_PROPERTY, "/, META-INF");

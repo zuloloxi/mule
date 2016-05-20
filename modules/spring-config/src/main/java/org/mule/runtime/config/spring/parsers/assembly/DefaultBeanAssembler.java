@@ -573,13 +573,21 @@ public class DefaultBeanAssembler implements BeanAssembler
 
     protected static boolean methodExists(String className, String newName)
     {
+        // is there a better way than this?!
+        // BeanWrapperImpl instantiates an instance, which we don't want.
+        // if there really is no better way, i guess it should go in
+        // class or bean utils.
+        Class clazz;
         try
         {
-            // is there a better way than this?!
-            // BeanWrapperImpl instantiates an instance, which we don't want.
-            // if there really is no better way, i guess it should go in
-            // class or bean utils.
-            Class clazz = ClassUtils.getClass(className);
+            clazz = ClassUtils.getClass(className);
+        }
+        catch (ClassNotFoundException e)
+        {
+            throw new RuntimeException(e);
+        }
+        try
+        {
             Method[] methods = clazz.getMethods();
             String setter = "set" + newName;
             for (int i = 0; i < methods.length; ++i)

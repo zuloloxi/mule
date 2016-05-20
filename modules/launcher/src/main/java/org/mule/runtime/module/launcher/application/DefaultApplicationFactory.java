@@ -8,6 +8,7 @@ package org.mule.runtime.module.launcher.application;
 
 import static java.util.Collections.emptyMap;
 import static org.mule.runtime.module.artifact.classloader.ClassLoaderLookupStrategy.PARENT_FIRST;
+import org.mule.runtime.config.spring.MuleArtifactContext;
 import org.mule.runtime.module.artifact.classloader.ArtifactClassLoader;
 import org.mule.runtime.module.artifact.classloader.ArtifactClassLoaderFactory;
 import org.mule.runtime.module.artifact.classloader.ClassLoaderLookupPolicy;
@@ -16,6 +17,7 @@ import org.mule.runtime.module.artifact.classloader.FilteringArtifactClassLoader
 import org.mule.runtime.module.artifact.classloader.MuleArtifactClassLoader;
 import org.mule.runtime.module.launcher.ApplicationDescriptorFactory;
 import org.mule.runtime.module.launcher.DeploymentListener;
+import org.mule.runtime.module.launcher.MuleDeploymentService;
 import org.mule.runtime.module.launcher.artifact.ArtifactFactory;
 import org.mule.runtime.module.launcher.descriptor.ApplicationDescriptor;
 import org.mule.runtime.module.launcher.domain.DomainRepository;
@@ -136,6 +138,8 @@ public class DefaultApplicationFactory implements ArtifactFactory<Application>
         for (ApplicationPluginDescriptor descriptor : pluginDescriptors)
         {
             final MuleArtifactClassLoader pluginClassLoader = createPluginClassLoader(parentClassLoader, descriptor);
+            //TODO(pablo.kraan): must reference an injected instance not
+            MuleDeploymentService.namespaceManager.maybeAddNamespaceHandlerFor(pluginClassLoader);
             final DefaultApplicationPlugin applicationPlugin = new DefaultApplicationPlugin(descriptor, pluginClassLoader);
 
             plugins.add(applicationPlugin);
@@ -167,5 +171,145 @@ public class DefaultApplicationFactory implements ArtifactFactory<Application>
         }
 
         return result;
+    }
+
+    protected void maybeCreateApplicationContextFor() {
+
+        //boolean debug = log.isDebugEnabled();
+        //String bundleString = "[" + OsgiStringUtils.nullSafeNameAndSymName(bundle) + "]";
+        //
+        //final Long bundleId = new Long(bundle.getBundleId());
+        //
+        //if (managedContexts.containsKey(bundleId)) {
+        //    if (debug) {
+        //        log.debug("Bundle " + bundleString + " is already managed; ignoring...");
+        //    }
+        //    return;
+        //}
+        //
+        //if (!versionMatcher.matchVersion(bundle)) {
+        //    return;
+        //}
+        //
+        //BundleContext localBundleContext = OsgiBundleUtils.getBundleContext(bundle);
+
+        // initialize context
+        //final DelegatedExecutionOsgiBundleApplicationContext localApplicationContext;
+        final MuleArtifactContext localApplicationContext;
+        //
+
+        //if (debug)
+        //    log.debug("Inspecting bundle " + bundleString);
+        //
+        try {
+            //localApplicationContext = contextCreator.createApplicationContext(localBundleContext);
+            //localApplicationContext = new MuleArtifactContext();
+        } catch (Exception ex) {
+            //log.error("Cannot create application context for bundle " + bundleString, ex);
+            //System.out.println("Cannot create application context for bundle " + bundleString, ex);
+            return;
+        }
+        //
+        //if (localApplicationContext == null) {
+        //    log.debug("No application context created for bundle " + bundleString);
+        //    return;
+        //}
+        //
+        //if (typeChecker != null) {
+        //    if (!typeChecker.isTypeCompatible(localBundleContext)) {
+        //        log.info("Bundle " + OsgiStringUtils.nullSafeName(bundle) + " is not type compatible with extender "
+        //                 + OsgiStringUtils.nullSafeName(bundleContext.getBundle()) + "; ignoring bundle...");
+        //        return;
+        //    }
+        //}
+        //
+        //log.debug("Bundle " + OsgiStringUtils.nullSafeName(bundle) + " is type compatible with extender "
+        //          + OsgiStringUtils.nullSafeName(bundleContext.getBundle()) + "; processing bundle...");
+        //
+        //// create a dedicated hook for this application context
+        //BeanFactoryPostProcessor processingHook =
+        //        new OsgiBeanFactoryPostProcessorAdapter(localBundleContext, postProcessors);
+        //
+        //// add in the post processors
+        //localApplicationContext.addBeanFactoryPostProcessor(processingHook);
+        //
+        //// add the context to the tracker
+        //managedContexts.put(bundleId, localApplicationContext);
+        //
+        //localApplicationContext.setDelegatedEventMulticaster(multicaster);
+        //
+        //ApplicationContextConfiguration config = contextConfigurationFactory.createConfiguration(bundle);
+        //
+        //final boolean asynch = config.isCreateAsynchronously();
+        //
+        //// create refresh runnable
+        //Runnable contextRefresh = new Runnable() {
+        //
+        //    public void run() {
+        //        // post refresh events are caught through events
+        //        if (log.isTraceEnabled()) {
+        //            log.trace("Calling pre-refresh on processor " + processor);
+        //        }
+        //        processor.preProcessRefresh(localApplicationContext);
+        //        localApplicationContext.refresh();
+        //    }
+        //};
+        //
+        //// executor used for creating the appCtx
+        //// chosen based on the sync/async configuration
+        //TaskExecutor executor = null;
+        //
+        //String creationType;
+        //
+        //// synch/asynch context creation
+        //if (asynch) {
+        //    // for the async stuff use the executor
+        //    executor = taskExecutor;
+        //    creationType = "Asynchronous";
+        //} else {
+        //    // for the sync stuff, use this thread
+        //    executor = sameThreadTaskExecutor;
+        //    creationType = "Synchronous";
+        //}
+        //
+        //if (debug) {
+        //    log.debug(creationType + " context creation for bundle " + bundleString);
+        //}
+        //
+        //// wait/no wait for dependencies behaviour
+        //if (config.isWaitForDependencies()) {
+        //    DependencyWaiterApplicationContextExecutor appCtxExecutor =
+        //            new DependencyWaiterApplicationContextExecutor(localApplicationContext, !asynch,
+        //                                                           extenderConfiguration.getDependencyFactories());
+        //
+        //    long timeout;
+        //    // check whether a timeout has been defined
+        //
+        //    if (config.isTimeoutDeclared()) {
+        //        timeout = config.getTimeout();
+        //        if (debug)
+        //            log.debug("Setting bundle-defined, wait-for-dependencies/graceperiod timeout value=" + timeout
+        //                      + " ms, for bundle " + bundleString);
+        //
+        //    } else {
+        //        timeout = extenderConfiguration.getDependencyWaitTime();
+        //        if (debug)
+        //            log.debug("Setting globally defined wait-for-dependencies/graceperiod timeout value=" + timeout
+        //                      + " ms, for bundle " + bundleString);
+        //    }
+        //
+        //    appCtxExecutor.setTimeout(timeout);
+        //    appCtxExecutor.setWatchdog(timer);
+        //    appCtxExecutor.setTaskExecutor(executor);
+        //    appCtxExecutor.setMonitoringCounter(contextsStarted);
+        //    // set events publisher
+        //    appCtxExecutor.setDelegatedMulticaster(this.multicaster);
+        //
+        //    contextsStarted.increment();
+        //} else {
+        //    // do nothing; by default contexts do not wait for services.
+        //}
+        //
+        //executor.execute(contextRefresh);
     }
 }

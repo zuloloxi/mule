@@ -41,6 +41,13 @@ public class GenericBeanDbConfigTestCase extends AbstractDbIntegrationTestCase
         return new String[] {"integration/select/select-default-config.xml"};
     }
 
+    //@Override
+    //protected URL[] getAdditionalLibraries() throws MalformedURLException
+    //{
+    //    //TODO(pablo.kraan): must find a better way to reference libraries
+    //    return new URL[] {new URL("file:///Users/pablokraan/.m2/repository/com/experlog/xapool/1.5.0/xapool-1.5.0.jar")};
+    //}
+
     @Test
     public void usesGenericJdbcConfig() throws Exception
     {
