@@ -57,13 +57,14 @@ public class ModulePropertiesTestCase
         //generateMuleModuleProperties("pgp", "/Users/pablokraan/devel/workspaces/muleFull-4.x4/mule/modules/");
         //generateMuleModuleProperties("schedulers", "/Users/pablokraan/devel/workspaces/muleFull-4.x4/mule/modules/");
         //generateMuleModuleProperties("ws", "/Users/pablokraan/devel/workspaces/muleFull-4.x4/mule/modules/");
-        generateMuleModuleProperties("ftp", "/Users/pablokraan/devel/workspaces/muleFull-4.x4/mule/extensions/");
+        //generateMuleModuleProperties("ftp", "/Users/pablokraan/devel/workspaces/muleFull-4.x4/mule/extensions/");
         //generateMuleModuleProperties("module-support", "/Users/pablokraan/devel/workspaces/muleFull-4.x4/mule/transports/");
         //generateMuleModuleProperties("core", "/Users/pablokraan/devel/workspaces/muleFull-4.x4/mule/transports/");
         //generateMuleModuleProperties("vm", "/Users/pablokraan/devel/workspaces/muleFull-4.x4/mule/transports/");
         //generateMuleModuleProperties("jms", "/Users/pablokraan/devel/workspaces/muleFull-4.x4/mule/transports/");
         //generateMuleModuleProperties("tcp", "/Users/pablokraan/devel/workspaces/muleFull-4.x4/mule/transports/");
-        generateMuleModuleProperties("ssl", "/Users/pablokraan/devel/workspaces/muleFull-4.x4/mule/transports/");
+        //generateMuleModuleProperties("ssl", "/Users/pablokraan/devel/workspaces/muleFull-4.x4/mule/transports/");
+        generateMuleModuleProperties("file", "/Users/pablokraan/devel/workspaces/muleFull-4.x4/mule/transports/");
     }
 
     private void generateMuleModuleProperties(String moduleName, String moduleBasePath) throws IOException
