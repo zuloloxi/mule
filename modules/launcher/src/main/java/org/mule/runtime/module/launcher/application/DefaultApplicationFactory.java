@@ -139,7 +139,7 @@ public class DefaultApplicationFactory implements ArtifactFactory<Application>
         {
             final MuleArtifactClassLoader pluginClassLoader = createPluginClassLoader(parentClassLoader, descriptor);
             //TODO(pablo.kraan): must reference an injected instance not
-            MuleDeploymentService.namespaceManager.maybeAddNamespaceHandlerFor(pluginClassLoader);
+            MuleDeploymentService.namespaceManager.registerAvailableNamespaces(pluginClassLoader);
             final DefaultApplicationPlugin applicationPlugin = new DefaultApplicationPlugin(descriptor, pluginClassLoader);
 
             plugins.add(applicationPlugin);

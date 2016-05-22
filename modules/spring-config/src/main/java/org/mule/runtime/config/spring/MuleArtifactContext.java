@@ -207,8 +207,6 @@ public class MuleArtifactContext extends AbstractXmlApplicationContext
         // Allow a subclass to provide custom initialisation of the reader,
         // then proceed with actually loading the bean definitions.
         initBeanDefinitionReader(beanDefinitionReader);
-        //TODO(pablo.kraan): this was used on gemini, removed as it is used below
-        //loadBeanDefinitions(beanDefinitionReader);
 
         // Communicate mule context to parsers
         try
@@ -242,7 +240,6 @@ public class MuleArtifactContext extends AbstractXmlApplicationContext
 
     protected MuleDocumentLoader createLoader()
     {
-        //TODO(pablo.kraan): in gemini uses "new BlueprintDocumentLoader()"
         return new MuleDocumentLoader();
     }
 
@@ -323,7 +320,6 @@ public class MuleArtifactContext extends AbstractXmlApplicationContext
     }
 
     private NamespaceHandlerResolver createNamespaceHandlerResolver(ClassLoader bundleClassLoader) {
-        //Assert.notNull(bundleContext, "bundleContext is required");
         // create local namespace resolver
         // we'll use the default resolver which uses the bundle local class-loader
         NamespaceHandlerResolver localNamespaceResolver = new DefaultNamespaceHandlerResolver(bundleClassLoader);

@@ -51,8 +51,9 @@ public class NamespacePlugins implements NamespaceHandlerResolver, EntityResolve
         {
             this.artifactClassLoader = artifactClassLoader;
 
-            ClassLoader loader = artifactClassLoader.getClassLoader(); //BundleDelegatingClassLoader.createBundleClassLoaderFor(bundle);
+            ClassLoader loader = artifactClassLoader.getClassLoader();
 
+            //TODO(pablo.kraan): these resolvers are going to find all the resources available in the parent classlaoders too. Fix it
             entity = new DelegatingEntityResolver(loader);
             namespace = new DefaultNamespaceHandlerResolver(loader);
         }
