@@ -216,26 +216,35 @@ public abstract class AbstractMuleContextTestCase extends AbstractMuleTestCase
         }
         else
         {
-            MuleContextFactory muleContextFactory = new DefaultMuleContextFactory();
-            List<ConfigurationBuilder> builders = new ArrayList<>();
-            builders.add(new SimpleConfigurationBuilder(getStartUpProperties()));
-            builders.add(getBuilder());
-            addBuilders(builders);
-            MuleContextBuilder contextBuilder = new DefaultMuleContextBuilder();
-            DefaultMuleConfiguration muleConfiguration = new DefaultMuleConfiguration();
-            String workingDirectory = this.workingDirectory.getRoot().getAbsolutePath();
-            logger.info("Using working directory for test: " + workingDirectory);
-            muleConfiguration.setWorkingDirectory(workingDirectory);
-            contextBuilder.setMuleConfiguration(muleConfiguration);
-            configureMuleContext(contextBuilder);
-            context = muleContextFactory.createMuleContext(builders, contextBuilder);
-            if (!isGracefulShutdown())
+            final ClassLoader executionClassLoader = getExecutionClassLoader();
+            final ClassLoader originalContextClassLoader = Thread.currentThread().getContextClassLoader();
+            try
             {
-                ((DefaultMuleConfiguration) context.getConfiguration()).setShutdownTimeout(0);
+                Thread.currentThread().setContextClassLoader(executionClassLoader);
+
+                MuleContextFactory muleContextFactory = new DefaultMuleContextFactory();
+                List<ConfigurationBuilder> builders = new ArrayList<>();
+                builders.add(new SimpleConfigurationBuilder(getStartUpProperties()));
+                builders.add(getBuilder());
+                addBuilders(builders);
+                //TODO(pablo.kraan): probably setExecutionClassLoader should be in the interface
+                DefaultMuleContextBuilder contextBuilder = new DefaultMuleContextBuilder();
+                DefaultMuleConfiguration muleConfiguration = new DefaultMuleConfiguration();
+                String workingDirectory = this.workingDirectory.getRoot().getAbsolutePath();
+                logger.info("Using working directory for test: " + workingDirectory);
+                muleConfiguration.setWorkingDirectory(workingDirectory);
+                contextBuilder.setMuleConfiguration(muleConfiguration);
+                contextBuilder.setExecutionClassLoader(executionClassLoader);
+                configureMuleContext(contextBuilder);
+                context = muleContextFactory.createMuleContext(builders, contextBuilder);
+                if (!isGracefulShutdown())
+                {
+                    ((DefaultMuleConfiguration) context.getConfiguration()).setShutdownTimeout(0);
+                }
             }
             finally
             {
-               Thread.currentThread().setContextClassLoader(originalContextClassLoader);
+                Thread.currentThread().setContextClassLoader(originalContextClassLoader);
             }
         }
         return context;
