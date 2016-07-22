@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:cxf="http://www.mulesoft.org/schema/mule/cxf"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc"
+      xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+      xmlns:spring="http://www.springframework.org/schema/beans"
+      xsi:schemaLocation="
+               http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+               http://www.mulesoft.org/schema/mule/cxf http://www.mulesoft.org/schema/mule/cxf/current/mule-cxf.xsd
+               http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+               http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd
+               http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+               http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd">
+
+    <http:listener-config name="listenerConfig" host="localhost" port="${port}"/>
+
+    <tls:context name="tlsContext">
+        <tls:key-store path="clientKeystore" keyPassword="mulepassword" password="mulepassword" alias="muleclient"
+                       type="jks"/>
+    </tls:context>
+
+    <wsc:config name="configWithSignature">
+        <wsc:ws-connection serviceAddress="http://localhost:${port}/services/Test" wsdlLocation="Test.wsdl"
+                           service="TestService" port="TestPort">
+            <wsc:securities>
+                <wsc:sign-security-strategy tlsContext="tlsContext"/>
+            </wsc:securities>
+        </wsc:ws-connection>
+    </wsc:config>
+
+    <wsc:config name="configWithoutSignature">
+        <wsc:ws-connection serviceAddress="http://localhost:${port}/services/Test" wsdlLocation="Test.wsdl"
+                           service="TestService" port="TestPort"/>
+    </wsc:config>
+
+    <flow name="requestWithSignature">
+        <wsc:consume operation="echo" config-ref="configWithSignature"/>
+    </flow>
+
+    <flow name="requestWithoutSignature">
+        <wsc:consume operation="echo" config-ref="configWithoutSignature"/>
+    </flow>
+
+    <flow name="server">
+        <http:listener path="/services/Test" config-ref="listenerConfig"/>
+        <cxf:jaxws-service serviceClass="org.mule.extension.ws.consumer.TestService">
+            <cxf:inInterceptors>
+                <spring:bean class="org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor">
+                    <spring:constructor-arg>
+                        <spring:map>
+                            <spring:entry key="action" value="Signature"/>
+                            <spring:entry key="signaturePropRefId" value="serverInSecurityProperties"/>
+                            <spring:entry key="serverInSecurityProperties">
+                                <spring:props>
+                                    <spring:prop key="org.apache.ws.security.crypto.merlin.truststore.type">jks
+                                    </spring:prop>
+                                    <spring:prop key="org.apache.ws.security.crypto.merlin.truststore.password">
+                                        mulepassword
+                                    </spring:prop>
+                                    <spring:prop key="org.apache.ws.security.crypto.merlin.truststore.file">trustStore
+                                    </spring:prop>
+                                </spring:props>
+                            </spring:entry>
+                        </spring:map>
+                    </spring:constructor-arg>
+                </spring:bean>
+            </cxf:inInterceptors>
+        </cxf:jaxws-service>
+        <component class="org.mule.extension.ws.consumer.TestService"/>
+    </flow>
+
+</mule>

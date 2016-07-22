@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:cxf="http://www.mulesoft.org/schema/mule/cxf"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc"
+      xsi:schemaLocation="
+               http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+               http://www.mulesoft.org/schema/mule/cxf http://www.mulesoft.org/schema/mule/cxf/current/mule-cxf.xsd
+               http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+               http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+
+    <http:listener-config name="listenerConfig" host="localhost" port="${port}"/>
+
+    <wsc:config name="configValidCredentialsText">
+        <wsc:ws-connection serviceAddress="http://localhost:${port}/services/Test" wsdlLocation="Test.wsdl"
+                           service="TestService" port="TestPort">
+            <wsc:securities>
+                <wsc:username-token-security-strategy username="admin" password="${textPasswordPlaceholder}"
+                                                      passwordType="TEXT" addCreated="true" addNonce="true"/>
+            </wsc:securities>
+        </wsc:ws-connection>
+
+    </wsc:config>
+
+    <flow name="clientWithValidCredentialsText">
+        <wsc:consume operation="echo" config-ref="configValidCredentialsText"/>
+    </flow>
+
+    <wsc:config name="configValidCredentialsDigest">
+        <wsc:ws-connection serviceAddress="http://localhost:${port}/services/Test" wsdlLocation="Test.wsdl"
+                           service="TestService" port="TestPort">
+            <wsc:securities>
+                <wsc:username-token-security-strategy username="admin" password="${digestPasswordPlaceholder}"
+                                                      passwordType="DIGEST" addCreated="true" addNonce="true"/>
+            </wsc:securities>
+        </wsc:ws-connection>
+    </wsc:config>
+
+    <flow name="clientWithValidCredentialsDigest">
+        <wsc:consume operation="echo" config-ref="configValidCredentialsDigest"/>
+    </flow>
+
+
+    <wsc:config name="configInvalidCredentials">
+        <wsc:ws-connection serviceAddress="http://localhost:${port}/services/Test" wsdlLocation="Test.wsdl"
+                           service="TestService" port="TestPort">
+            <wsc:securities>
+                <wsc:username-token-security-strategy username="admin" password="invalid" passwordType="TEXT"/>
+            </wsc:securities>
+        </wsc:ws-connection>
+    </wsc:config>
+
+    <flow name="clientWithInvalidCredentials">
+        <wsc:consume operation="echo" config-ref="configInvalidCredentials"/>
+    </flow>
+
+
+    <wsc:config name="configWithoutCredentials">
+        <wsc:ws-connection serviceAddress="http://localhost:${port}/services/Test" wsdlLocation="Test.wsdl"
+                           service="TestService" port="TestPort"/>
+    </wsc:config>
+
+    <flow name="clientWithoutCredentials">
+        <wsc:consume operation="echo" config-ref="configWithoutCredentials"/>
+    </flow>
+
+
+    <cxf:ws-security name="inboundConfig">
+        <cxf:ws-config>
+            <cxf:property key="action" value="UsernameToken"/>
+            <cxf:property key="passwordCallbackClass"
+                          value="org.mule.runtime.module.ws.functional.UsernameTokenSecurityFunctionalTestCase$ServerPasswordCallback"/>
+        </cxf:ws-config>
+    </cxf:ws-security>
+
+
+    <flow name="server">
+        <http:listener path="/services/Test" config-ref="listenerConfig"/>
+        <cxf:jaxws-service serviceClass="org.mule.extension.ws.consumer.TestService">
+            <cxf:ws-security ref="inboundConfig"/>
+        </cxf:jaxws-service>
+        <component class="org.mule.extension.ws.consumer.TestService"/>
+    </flow>
+
+</mule>

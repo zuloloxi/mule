@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:test="http://www.mulesoft.org/schema/mule/test"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc"
+      xsi:schemaLocation="
+               http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+               http://www.mulesoft.org/schema/mule/test http://www.mulesoft.org/schema/mule/test/current/mule-test.xsd
+               http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+               http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+
+    <http:listener-config name="listenerConfig" host="localhost" port="${port}"/>
+
+    <flow name="server">
+        <http:listener path="/services/Test" config-ref="listenerConfig"/>
+        <test:component/>
+    </flow>
+
+    <wsc:config name="globalConfig">
+        <wsc:ws-connection serviceAddress="http://localhost:${port}/services/Test" wsdlLocation="Test.wsdl"
+                           service="TestService" port="TestPort"/>
+    </wsc:config>
+
+    <flow name="client" processingStrategy="synchronous">
+
+        <set-variable variableName="flowVarName" value="testFlowVar"/>
+        <set-session-variable variableName="sessionVarName" value="testSessionVar"/>
+
+        <wsc:consume operation="echo"/>
+
+        <catch-exception-strategy>
+            <set-property propertyName="flowVar" value="#[flowVars['flowVarName']]"/>
+            <set-property propertyName="sessionVar" value="#[sessionVars['sessionVarName']]"/>
+            <test:queue name="out"/>
+        </catch-exception-strategy>
+    </flow>
+
+</mule>

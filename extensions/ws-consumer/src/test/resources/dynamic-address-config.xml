@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:cxf="http://www.mulesoft.org/schema/mule/cxf"
+      xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xsi:schemaLocation="
+               http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+               http://www.mulesoft.org/schema/mule/cxf http://www.mulesoft.org/schema/mule/cxf/current/mule-cxf.xsd
+               http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd
+               http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+    <http:listener-config name="listenerConfig" host="localhost" port="${port}"/>
+
+    <wsc:config name="globalConfigInboundProperty">
+        <wsc:ws-connection serviceAddress="http://localhost:${port}/#[message.inboundProperties['pathInboundProperty']]"
+                           wsdlLocation="Test.wsdl" service="TestService" port="TestPort"/>
+    </wsc:config>
+
+    <flow name="clientInboundProperty">
+        <wsc:consume operation="echo" config-ref="globalConfigInboundProperty"/>
+    </flow>
+
+    <wsc:config name="globalConfigOutboundProperty">
+        <wsc:ws-connection
+                serviceAddress="http://localhost:${port}/#[message.outboundProperties['pathOutboundProperty']]"
+                wsdlLocation="Test.wsdl" service="TestService" port="TestPort"/>
+    </wsc:config>
+
+    <flow name="clientOutboundProperty">
+        <set-property propertyName="pathOutboundProperty" value="services/Test"/>
+        <wsc:consume operation="echo" config-ref="globalConfigOutboundProperty"/>
+    </flow>
+
+    <wsc:config name="globalConfigFlowVar">
+        <wsc:ws-connection serviceAddress="http://localhost:${port}/#[pathFlowVar]" wsdlLocation="Test.wsdl"
+                           service="TestService" port="TestPort"/>
+    </wsc:config>
+
+    <flow name="clientFlowVar">
+        <set-variable variableName="pathFlowVar" value="services/Test"/>
+        <wsc:consume operation="echo" config-ref="globalConfigFlowVar"/>
+    </flow>
+
+    <wsc:config name="globalConfigSessionVar">
+        <wsc:ws-connection serviceAddress="http://localhost:${port}/#[pathSessionVar]" wsdlLocation="Test.wsdl"
+                           service="TestService" port="TestPort"/>
+    </wsc:config>
+
+    <flow name="clientSessionVar">
+        <set-session-variable variableName="pathSessionVar" value="services/Test"/>
+        <wsc:consume operation="echo" config-ref="globalConfigSessionVar"/>
+    </flow>
+
+    <flow name="server">
+        <http:listener path="/services/Test" config-ref="listenerConfig"/>
+        <cxf:jaxws-service serviceClass="org.mule.extension.ws.consumer.TestService"/>
+        <component class="org.mule.extension.ws.consumer.TestService"/>
+    </flow>
+
+</mule>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xsi:schemaLocation="
+               http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+               http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+               http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd
+               http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-current.xsd">
+
+    <wsc:config name="config">
+        <wsc:ws-connection wsdlLocation="http://user:password@localhost:${httpServerPort}/Test.wsdl"
+                           service="TestService" port="TestPort" serviceAddress="http://localhost:${port}/services/Test"/>
+    </wsc:config>
+
+    <http:listener-config name="listenerConfig" host="localhost" port="9000"/>
+
+    <flow name="authWsdl">
+        <http:listener path="test" config-ref="listenerConfig" />
+        <wsc:consume config-ref="config" operation="echo" />
+    </flow>
+
+</mule>
