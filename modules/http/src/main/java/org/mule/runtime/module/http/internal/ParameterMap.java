@@ -8,7 +8,7 @@ package org.mule.runtime.module.http.internal;
 
 import static java.util.Collections.unmodifiableMap;
 
-import org.mule.runtime.module.http.api.HttpParameters;
+import org.mule.service.http.api.domain.HttpParameters;
 
 import java.io.Serializable;
 import java.util.AbstractMap;

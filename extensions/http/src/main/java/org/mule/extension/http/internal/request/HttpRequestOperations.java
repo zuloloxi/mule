@@ -10,16 +10,15 @@ import static java.lang.Integer.MAX_VALUE;
 import static org.mule.extension.http.internal.HttpConnector.OTHER_SETTINGS;
 import static org.mule.extension.http.internal.HttpConnector.URL_OVERRIDE_CONFIGURATION;
 import static org.mule.runtime.extension.api.annotation.param.display.Placement.ADVANCED;
-
 import org.mule.extension.http.api.HttpResponseAttributes;
 import org.mule.extension.http.api.HttpSendBodyMode;
 import org.mule.extension.http.api.HttpStreamingType;
 import org.mule.extension.http.api.request.builder.HttpRequesterRequestBuilder;
-import org.mule.extension.http.api.request.client.HttpClient;
 import org.mule.extension.http.api.request.client.UriParameters;
 import org.mule.extension.http.api.request.validator.ResponseValidator;
 import org.mule.extension.http.api.request.validator.SuccessStatusCodeValidator;
 import org.mule.extension.http.internal.HttpConnector;
+import org.mule.extension.http.internal.request.client.UriParametersHttpClient;
 import org.mule.extension.http.internal.request.validator.HttpMetadataResolver;
 import org.mule.extension.http.internal.request.validator.HttpRequesterConfig;
 import org.mule.runtime.core.api.MuleContext;
@@ -90,7 +89,8 @@ public class HttpRequestOperations {
                                                                  @Optional @Placement(tab = ADVANCED,
                                                                      group = "Status Code Settings") ResponseValidator responseValidator,
                                                                  @Optional HttpRequesterRequestBuilder requestBuilder,
-                                                                 @MetadataKeyId String key, @Connection HttpClient client,
+                                                                 @MetadataKeyId String key,
+                                                                 @Connection UriParametersHttpClient client,
                                                                  @UseConfig HttpRequesterConfig config, MuleEvent muleEvent)
       throws MuleException {
     HttpRequesterRequestBuilder resolvedBuilder = requestBuilder != null ? requestBuilder : new HttpRequesterRequestBuilder();

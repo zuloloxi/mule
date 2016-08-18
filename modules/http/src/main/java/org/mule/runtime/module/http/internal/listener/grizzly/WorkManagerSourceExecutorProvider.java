@@ -10,7 +10,7 @@ import org.mule.runtime.core.api.MuleException;
 import org.mule.runtime.core.api.MuleRuntimeException;
 import org.mule.runtime.core.api.context.WorkManagerSource;
 import org.mule.runtime.module.http.internal.listener.ServerAddressMap;
-import org.mule.runtime.module.http.internal.listener.ServerAddress;
+import org.mule.service.http.api.server.ServerAddress;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
@@ -26,7 +26,7 @@ public class WorkManagerSourceExecutorProvider implements ExecutorProvider {
 
   /**
    * Adds an {@link java.util.concurrent.Executor} to be used when a request is made to a
-   * {@link org.mule.runtime.module.http.internal.listener.ServerAddress}
+   * {@link ServerAddress}
    *
    * @param serverAddress address to which the executor should be applied to
    * @param workManagerSource the executor to use when a request is done to the server address

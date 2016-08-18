@@ -9,15 +9,14 @@ package org.mule.extension.http.internal.request;
 import static org.mule.runtime.core.context.notification.ConnectorMessageNotification.MESSAGE_REQUEST_BEGIN;
 import static org.mule.runtime.core.context.notification.ConnectorMessageNotification.MESSAGE_REQUEST_END;
 import static org.mule.runtime.module.http.api.HttpConstants.Protocols.HTTPS;
-
 import org.mule.extension.http.api.HttpSendBodyMode;
 import org.mule.extension.http.api.HttpStreamingType;
 import org.mule.extension.http.api.request.authentication.HttpAuthentication;
 import org.mule.extension.http.api.request.authentication.UsernamePasswordAuthentication;
 import org.mule.extension.http.api.request.builder.HttpRequesterRequestBuilder;
-import org.mule.extension.http.api.request.client.HttpClient;
 import org.mule.extension.http.api.request.client.UriParameters;
 import org.mule.extension.http.api.request.validator.ResponseValidator;
+import org.mule.extension.http.internal.request.client.UriParametersHttpClient;
 import org.mule.extension.http.internal.request.validator.HttpRequesterConfig;
 import org.mule.runtime.api.message.MuleMessage;
 import org.mule.runtime.core.DefaultMuleEvent;
@@ -29,9 +28,9 @@ import org.mule.runtime.core.config.i18n.CoreMessages;
 import org.mule.runtime.core.context.notification.ConnectorMessageNotification;
 import org.mule.runtime.core.context.notification.NotificationHelper;
 import org.mule.runtime.core.util.StringUtils;
-import org.mule.runtime.module.http.internal.domain.request.HttpRequest;
-import org.mule.runtime.module.http.internal.domain.request.HttpRequestAuthentication;
-import org.mule.runtime.module.http.internal.domain.response.HttpResponse;
+import org.mule.service.http.api.client.HttpRequestAuthentication;
+import org.mule.service.http.api.domain.request.HttpRequest;
+import org.mule.service.http.api.domain.response.HttpResponse;
 
 import java.io.InputStream;
 
@@ -72,7 +71,7 @@ public class HttpRequester {
         new NotificationHelper(config.getMuleContext().getNotificationManager(), ConnectorMessageNotification.class, false);
   }
 
-  public MuleMessage doRequest(MuleEvent muleEvent, HttpClient client, HttpRequesterRequestBuilder requestBuilder,
+  public MuleMessage doRequest(MuleEvent muleEvent, UriParametersHttpClient client, HttpRequesterRequestBuilder requestBuilder,
                                boolean checkRetry)
       throws MuleException {
     HttpRequest httpRequest = eventToHttpRequest.create(muleEvent, requestBuilder, authentication);

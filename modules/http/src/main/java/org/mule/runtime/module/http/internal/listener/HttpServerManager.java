@@ -6,8 +6,9 @@
  */
 package org.mule.runtime.module.http.internal.listener;
 
-import org.mule.runtime.core.api.context.WorkManagerSource;
 import org.mule.runtime.api.tls.TlsContextFactory;
+import org.mule.service.http.api.server.HttpServer;
+import org.mule.service.http.api.server.ServerAddress;
 
 import java.io.IOException;
 
@@ -27,29 +28,26 @@ public interface HttpServerManager {
   /**
    *
    * @param serverAddress address of the server
-   * @param workManagerSource work manager source to use for retrieving a {@link org.mule.runtime.core.api.context.WorkManager}
-   *        for processing this server requests
    * @param usePersistentConnections if true, the connections will be kept open for subsequent requests
    * @param connectionIdleTimeout the amount of milliseconds to keep open an idle connection @return the create Server handler
    * @throws IOException if it was not possible to create the Server. Most likely because the host and port is already in use.
    */
-  Server createServerFor(ServerAddress serverAddress, WorkManagerSource workManagerSource, boolean usePersistentConnections,
-                         int connectionIdleTimeout)
+  HttpServer createServerFor(ServerAddress serverAddress, boolean usePersistentConnections,
+                             int connectionIdleTimeout)
       throws IOException;
 
   /**
    *
    * @param tlsContextFactory
    * @param serverAddress address of the server
-   * @param workManagerSource work manager source to use for retrieving a {@link org.mule.runtime.core.api.context.WorkManager}
-   *        for processing this server requests
    * @param usePersistentConnections if true, the connections will be kept open for subsequent requests
    * @param connectionIdleTimeout the amount of milliseconds to keep open an idle connection
    * @return the create Server handler
    * @throws IOException if it was not possible to create the Server. Most likely because the host and port is already in use.
    */
-  Server createSslServerFor(TlsContextFactory tlsContextFactory, WorkManagerSource workManagerSource, ServerAddress serverAddress,
-                            boolean usePersistentConnections, int connectionIdleTimeout)
+  HttpServer createSslServerFor(TlsContextFactory tlsContextFactory,
+                                ServerAddress serverAddress,
+                                boolean usePersistentConnections, int connectionIdleTimeout)
       throws IOException;
 
   /**

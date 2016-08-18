@@ -21,11 +21,10 @@ import static org.mule.runtime.module.http.api.HttpConstants.HttpStatus.BAD_REQU
 import static org.mule.runtime.module.http.api.HttpConstants.HttpStatus.OK;
 import static org.mule.runtime.module.http.api.HttpConstants.Protocols.HTTP;
 import static org.mule.runtime.module.http.api.HttpHeaders.Names.HOST;
-import static org.mule.runtime.module.http.internal.domain.HttpProtocol.HTTP_1_0;
-import static org.mule.runtime.module.http.internal.domain.HttpProtocol.HTTP_1_1;
+import static org.mule.service.http.api.domain.HttpProtocol.HTTP_1_0;
+import static org.mule.service.http.api.domain.HttpProtocol.HTTP_1_1;
 import static org.mule.runtime.module.http.api.HttpListenerConnectionManager.HTTP_LISTENER_CONNECTION_MANAGER;
 
-import org.mule.runtime.core.DefaultMuleEvent;
 import org.mule.runtime.core.api.MuleContext;
 import org.mule.runtime.core.api.config.MuleConfiguration;
 import org.mule.runtime.core.api.construct.FlowConstruct;
@@ -35,16 +34,17 @@ import org.mule.runtime.core.api.registry.RegistrationException;
 import org.mule.runtime.core.execution.MessageProcessContext;
 import org.mule.runtime.core.execution.MessageProcessingManager;
 import org.mule.runtime.module.http.api.HttpListenerConnectionManager;
-import org.mule.runtime.module.http.internal.domain.ByteArrayHttpEntity;
-import org.mule.runtime.module.http.internal.domain.HttpProtocol;
-import org.mule.runtime.module.http.internal.domain.request.ClientConnection;
-import org.mule.runtime.module.http.internal.domain.request.HttpRequest;
-import org.mule.runtime.module.http.internal.domain.request.HttpRequestContext;
-import org.mule.runtime.module.http.internal.domain.response.HttpResponse;
-import org.mule.runtime.module.http.internal.listener.async.HttpResponseReadyCallback;
-import org.mule.runtime.module.http.internal.listener.async.RequestHandler;
-import org.mule.runtime.module.http.internal.listener.async.ResponseStatusCallback;
+import org.mule.service.http.api.domain.entity.ByteArrayHttpEntity;
+import org.mule.service.http.api.domain.HttpProtocol;
+import org.mule.runtime.module.http.internal.domain.request.DefaultClientConnection;
+import org.mule.service.http.api.domain.request.HttpRequest;
+import org.mule.runtime.module.http.internal.domain.request.DefaultHttpRequestContext;
+import org.mule.service.http.api.domain.response.HttpResponse;
+import org.mule.service.http.api.server.async.HttpResponseReadyCallback;
+import org.mule.service.http.api.server.RequestHandler;
+import org.mule.service.http.api.server.async.ResponseStatusCallback;
 import org.mule.runtime.module.http.internal.listener.matcher.ListenerRequestMatcher;
+import org.mule.service.http.api.server.RequestHandlerManager;
 import org.mule.tck.junit4.AbstractMuleTestCase;
 import org.mule.tck.size.SmallTest;
 
@@ -113,7 +113,7 @@ public class HttpListenerTestCase extends AbstractMuleTestCase {
 
     HttpRequest request = buildGetRootRequest(HTTP_1_1);
     when(request.getHeaderValueIgnoreCase(HOST)).thenReturn("localhost");
-    HttpRequestContext requestContext = buildRequestContext(request);
+    DefaultHttpRequestContext requestContext = buildRequestContext(request);
 
     requestHandlerRef.get().handleRequest(requestContext, responseCallback);
 
@@ -135,7 +135,7 @@ public class HttpListenerTestCase extends AbstractMuleTestCase {
     useInvalidPath("/");
 
     assertThat(getCurrentEvent(), is(nullValue()));
-    requestHandlerRef.get().handleRequest(mock(HttpRequestContext.class), mock(HttpResponseReadyCallback.class));
+    requestHandlerRef.get().handleRequest(mock(DefaultHttpRequestContext.class), mock(HttpResponseReadyCallback.class));
 
     assertThat(getCurrentEvent(), is(nullValue()));
   }
@@ -158,7 +158,7 @@ public class HttpListenerTestCase extends AbstractMuleTestCase {
     usePath("/");
 
     HttpRequest request = buildGetRootRequest(HTTP_1_0);
-    HttpRequestContext requestContext = buildRequestContext(request);
+    DefaultHttpRequestContext requestContext = buildRequestContext(request);
 
     HttpResponseReadyCallback responseCallback = mock(HttpResponseReadyCallback.class);
     requestHandlerRef.get().handleRequest(requestContext, responseCallback);
@@ -180,7 +180,7 @@ public class HttpListenerTestCase extends AbstractMuleTestCase {
     usePath("/");
 
     HttpRequest request = buildGetRootRequest(HTTP_1_1);
-    HttpRequestContext requestContext = buildRequestContext(request);
+    DefaultHttpRequestContext requestContext = buildRequestContext(request);
 
     HttpResponseReadyCallback responseCallback = mock(HttpResponseReadyCallback.class);
     requestHandlerRef.get().handleRequest(requestContext, responseCallback);
@@ -197,11 +197,11 @@ public class HttpListenerTestCase extends AbstractMuleTestCase {
     return request;
   }
 
-  protected HttpRequestContext buildRequestContext(HttpRequest request) {
-    ClientConnection clientConnection = mock(ClientConnection.class);
+  protected DefaultHttpRequestContext buildRequestContext(HttpRequest request) {
+    DefaultClientConnection clientConnection = mock(DefaultClientConnection.class);
     when(clientConnection.getRemoteHostAddress()).thenReturn(InetSocketAddress.createUnresolved("localhost", 80));
 
-    HttpRequestContext requestContext = mock(HttpRequestContext.class);
+    DefaultHttpRequestContext requestContext = mock(DefaultHttpRequestContext.class);
     when(requestContext.getRequest()).thenReturn(request);
     when(requestContext.getClientConnection()).thenReturn(clientConnection);
     when(requestContext.getScheme()).thenReturn(HTTP.getScheme());

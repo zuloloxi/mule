@@ -18,8 +18,8 @@ import org.mule.runtime.core.api.MuleMessage;
 import org.mule.runtime.core.expression.DefaultExpressionManager;
 import org.mule.runtime.core.util.AttributeEvaluator;
 import org.mule.runtime.core.util.IOUtils;
-import org.mule.runtime.module.http.internal.domain.InputStreamHttpEntity;
-import org.mule.runtime.module.http.internal.domain.response.HttpResponse;
+import org.mule.service.http.api.domain.entity.InputStreamHttpEntity;
+import org.mule.service.http.api.domain.response.HttpResponse;
 import org.mule.runtime.module.http.internal.domain.response.HttpResponseBuilder;
 import org.mule.tck.junit4.AbstractMuleContextTestCase;
 

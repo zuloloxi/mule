@@ -7,7 +7,8 @@
 package org.mule.extension.http.internal.request.grizzly;
 
 
-import org.mule.extension.socket.api.socket.tcp.TcpClientSocketProperties;
+
+import org.mule.service.http.api.client.TcpClientSocketProperties;
 
 import com.ning.http.client.providers.grizzly.TransportCustomizer;
 

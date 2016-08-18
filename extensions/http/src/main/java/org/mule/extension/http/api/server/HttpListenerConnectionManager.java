@@ -8,25 +8,25 @@ package org.mule.extension.http.api.server;
 
 
 import org.mule.extension.http.internal.listener.grizzly.GrizzlyServerManager;
-import org.mule.extension.http.internal.listener.server.HttpServerConfiguration;
-import org.mule.extension.http.internal.listener.server.HttpServerFactory;
 import org.mule.extension.socket.api.socket.tcp.TcpServerSocketProperties;
 import org.mule.runtime.api.connection.ConnectionException;
 import org.mule.runtime.api.tls.TlsContextFactory;
 import org.mule.runtime.core.api.MuleContext;
 import org.mule.runtime.core.api.MuleRuntimeException;
 import org.mule.runtime.core.api.context.MuleContextAware;
-import org.mule.runtime.core.api.context.WorkManagerSource;
 import org.mule.runtime.core.api.lifecycle.Disposable;
 import org.mule.runtime.core.api.lifecycle.Initialisable;
 import org.mule.runtime.core.api.lifecycle.InitialisationException;
 import org.mule.runtime.core.config.i18n.CoreMessages;
 import org.mule.runtime.core.util.NetworkUtils;
 import org.mule.runtime.core.util.concurrent.ThreadNameHelper;
+import org.mule.runtime.module.http.internal.listener.DefaultServerAddress;
 import org.mule.runtime.module.http.internal.listener.HttpListenerRegistry;
 import org.mule.runtime.module.http.internal.listener.HttpServerManager;
-import org.mule.runtime.module.http.internal.listener.Server;
-import org.mule.runtime.module.http.internal.listener.ServerAddress;
+import org.mule.service.http.api.server.HttpServer;
+import org.mule.service.http.api.server.HttpServerConfiguration;
+import org.mule.service.http.api.server.HttpServerFactory;
+import org.mule.service.http.api.server.ServerAddress;
 
 import com.google.common.collect.Iterables;
 
@@ -90,7 +90,7 @@ public class HttpListenerConnectionManager implements HttpServerFactory, Initial
   }
 
   @Override
-  public Server create(HttpServerConfiguration serverConfiguration) throws ConnectionException {
+  public HttpServer create(HttpServerConfiguration serverConfiguration) throws ConnectionException {
     ServerAddress serverAddress;
     String host = serverConfiguration.getHost();
     try {
@@ -101,19 +101,20 @@ public class HttpListenerConnectionManager implements HttpServerFactory, Initial
 
     TlsContextFactory tlsContextFactory = serverConfiguration.getTlsContextFactory();
     if (tlsContextFactory == null) {
-      return createServer(serverAddress, serverConfiguration.getWorkManagerSource(),
+      return createServer(serverAddress,
                           serverConfiguration.isUsePersistentConnections(), serverConfiguration.getConnectionIdleTimeout());
     } else {
-      return createSslServer(serverAddress, serverConfiguration.getWorkManagerSource(), tlsContextFactory,
+      return createSslServer(serverAddress, tlsContextFactory,
                              serverConfiguration.isUsePersistentConnections(), serverConfiguration.getConnectionIdleTimeout());
     }
   }
 
-  public Server createServer(ServerAddress serverAddress, WorkManagerSource workManagerSource, boolean usePersistentConnections,
-                             int connectionIdleTimeout) {
+  public HttpServer createServer(ServerAddress serverAddress,
+                                 boolean usePersistentConnections,
+                                 int connectionIdleTimeout) {
     if (!containsServerFor(serverAddress)) {
       try {
-        return httpServerManager.createServerFor(serverAddress, workManagerSource, usePersistentConnections,
+        return httpServerManager.createServerFor(serverAddress, usePersistentConnections,
                                                  connectionIdleTimeout);
       } catch (IOException e) {
         throw new MuleRuntimeException(e);
@@ -128,11 +129,11 @@ public class HttpListenerConnectionManager implements HttpServerFactory, Initial
     return httpServerManager.containsServerFor(serverAddress);
   }
 
-  public Server createSslServer(ServerAddress serverAddress, WorkManagerSource workManagerSource, TlsContextFactory tlsContext,
-                                boolean usePersistentConnections, int connectionIdleTimeout) {
+  public HttpServer createSslServer(ServerAddress serverAddress, TlsContextFactory tlsContext,
+                                    boolean usePersistentConnections, int connectionIdleTimeout) {
     if (!containsServerFor(serverAddress)) {
       try {
-        return httpServerManager.createSslServerFor(tlsContext, workManagerSource, serverAddress, usePersistentConnections,
+        return httpServerManager.createSslServerFor(tlsContext, serverAddress, usePersistentConnections,
                                                     connectionIdleTimeout);
       } catch (IOException e) {
         throw new MuleRuntimeException(e);
@@ -147,7 +148,7 @@ public class HttpListenerConnectionManager implements HttpServerFactory, Initial
    * Creates the server address object with the IP and port that a server should bind to.
    */
   private ServerAddress createServerAddress(String host, int port) throws UnknownHostException {
-    return new ServerAddress(NetworkUtils.getLocalHostIp(host), port);
+    return new DefaultServerAddress(NetworkUtils.getLocalHostIp(host), port);
   }
 
 }

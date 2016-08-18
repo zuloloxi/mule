@@ -13,15 +13,11 @@ import static org.mule.extension.http.internal.HttpConnector.TLS_CONFIGURATION;
 import static org.mule.extension.http.internal.HttpConnector.URL_CONFIGURATION;
 import static org.mule.runtime.api.connection.ConnectionExceptionCode.UNKNOWN;
 import static org.mule.runtime.api.connection.ConnectionValidationResult.failure;
-import static org.mule.runtime.core.api.config.ThreadingProfile.DEFAULT_THREADING_PROFILE;
 import static org.mule.runtime.core.api.lifecycle.LifecycleUtils.initialiseIfNeeded;
 import static org.mule.runtime.core.config.i18n.MessageFactory.createStaticMessage;
-import static org.mule.runtime.core.util.concurrent.ThreadNameHelper.getPrefix;
 import static org.mule.runtime.extension.api.introspection.parameter.ExpressionSupport.NOT_SUPPORTED;
 import static org.mule.runtime.module.http.api.HttpConstants.Protocols.HTTP;
 import static org.mule.runtime.module.http.api.HttpConstants.Protocols.HTTPS;
-import org.mule.extension.http.api.server.HttpListenerConnectionManager;
-import org.mule.extension.http.internal.listener.server.HttpServerConfiguration;
 import org.mule.runtime.api.connection.CachedConnectionProvider;
 import org.mule.runtime.api.connection.ConnectionException;
 import org.mule.runtime.api.connection.ConnectionValidationResult;
@@ -29,15 +25,10 @@ import org.mule.runtime.api.tls.TlsContextFactory;
 import org.mule.runtime.core.api.DefaultMuleException;
 import org.mule.runtime.core.api.MuleContext;
 import org.mule.runtime.core.api.MuleException;
-import org.mule.runtime.core.api.config.ThreadingProfile;
-import org.mule.runtime.core.api.context.MuleContextAware;
-import org.mule.runtime.core.api.context.WorkManager;
-import org.mule.runtime.core.api.context.WorkManagerSource;
 import org.mule.runtime.core.api.lifecycle.Initialisable;
 import org.mule.runtime.core.api.lifecycle.InitialisationException;
 import org.mule.runtime.core.api.lifecycle.Startable;
 import org.mule.runtime.core.api.lifecycle.Stoppable;
-import org.mule.runtime.core.config.MutableThreadingProfile;
 import org.mule.runtime.extension.api.annotation.Alias;
 import org.mule.runtime.extension.api.annotation.Expression;
 import org.mule.runtime.extension.api.annotation.Parameter;
@@ -46,22 +37,22 @@ import org.mule.runtime.extension.api.annotation.param.Optional;
 import org.mule.runtime.extension.api.annotation.param.display.DisplayName;
 import org.mule.runtime.extension.api.annotation.param.display.Placement;
 import org.mule.runtime.module.http.api.HttpConstants;
-import org.mule.runtime.module.http.internal.listener.Server;
-import org.mule.runtime.module.http.internal.listener.ServerAddress;
+import org.mule.service.http.api.HttpService;
+import org.mule.service.http.api.server.HttpServer;
+import org.mule.service.http.api.server.HttpServerConfiguration;
+import org.mule.service.http.api.server.ServerAddress;
 
 import java.io.IOException;
 
 import javax.inject.Inject;
 
 /**
- * Connection provider for a {@link HttpListener}, handles the creation of {@link Server} instances.
+ * Connection provider for a {@link HttpListener}, handles the creation of {@link HttpServer} instances.
  *
  * @since 4.0
  */
 @Alias("listener")
-public class HttpListenerProvider implements CachedConnectionProvider<Server>, Initialisable, Startable, Stoppable {
-
-  private static final int DEFAULT_MAX_THREADS = 128;
+public class HttpListenerProvider implements CachedConnectionProvider<HttpServer>, Initialisable, Startable, Stoppable {
 
   @ConfigName
   private String configName;
@@ -124,20 +115,15 @@ public class HttpListenerProvider implements CachedConnectionProvider<Server>, I
   private Boolean usePersistentConnections;
 
   @Inject
-  private HttpListenerConnectionManager connectionManager;
+  private HttpService httpService;
 
   @Inject
   private MuleContext muleContext;
 
-  // TODO: MULE-9320 Define threading model for message sources in Mule 4 - This should be a parameter if nothing changes
-  private ThreadingProfile workerThreadingProfile;
-  private WorkManager workManager;
-  private Server server;
+  private HttpServer server;
 
   @Override
   public void initialise() throws InitialisationException {
-    initialiseIfNeeded(connectionManager);
-
     if (port == null) {
       port = protocol.getDefaultPort();
     }
@@ -160,15 +146,11 @@ public class HttpListenerProvider implements CachedConnectionProvider<Server>, I
 
     verifyConnectionsParameters();
 
-    // TODO: MULE-9320 Define threading model for message sources in Mule 4 - Analyse whether this can be avoided
-    workerThreadingProfile = new MutableThreadingProfile(DEFAULT_THREADING_PROFILE);
-    workerThreadingProfile.setMaxThreadsActive(DEFAULT_MAX_THREADS);
-
     HttpServerConfiguration serverConfiguration = new HttpServerConfiguration.Builder().setHost(host).setPort(port)
         .setTlsContextFactory(tlsContext).setUsePersistentConnections(usePersistentConnections)
-        .setConnectionIdleTimeout(connectionIdleTimeout).setWorkManagerSource(createWorkManagerSource(workManager)).build();
+        .setConnectionIdleTimeout(connectionIdleTimeout).build();
     try {
-      server = connectionManager.create(serverConfiguration);
+      server = httpService.getServerFactory().create(serverConfiguration);
     } catch (ConnectionException e) {
       throw new InitialisationException(createStaticMessage("Could not create HTTP server"), this);
     }
@@ -177,8 +159,6 @@ public class HttpListenerProvider implements CachedConnectionProvider<Server>, I
   @Override
   public void start() throws MuleException {
     try {
-      workManager = createWorkManager(configName);
-      workManager.start();
       server.start();
     } catch (IOException e) {
       throw new DefaultMuleException(new ConnectionException("Could not start HTTP server", e));
@@ -187,29 +167,21 @@ public class HttpListenerProvider implements CachedConnectionProvider<Server>, I
 
   @Override
   public void stop() throws MuleException {
-    try {
-      server.stop();
-    } finally {
-      try {
-        workManager.dispose();
-      } finally {
-        workManager = null;
-      }
-    }
+    server.stop();
   }
 
   @Override
-  public Server connect() throws ConnectionException {
+  public HttpServer connect() throws ConnectionException {
     return server;
   }
 
   @Override
-  public void disconnect(Server server) {
+  public void disconnect(HttpServer server) {
     // server could be shared with other listeners, do nothing
   }
 
   @Override
-  public ConnectionValidationResult validate(Server server) {
+  public ConnectionValidationResult validate(HttpServer server) {
     if (server.isStopped() || server.isStopping()) {
       ServerAddress serverAddress = server.getServerAddress();
       return failure(format("Server on host %s and port %s is stopped.", serverAddress.getIp(), serverAddress.getPort()), UNKNOWN,
@@ -225,17 +197,4 @@ public class HttpListenerProvider implements CachedConnectionProvider<Server>, I
     }
   }
 
-  private WorkManager createWorkManager(String name) {
-    final WorkManager workManager =
-        workerThreadingProfile.createWorkManager(format("%s%s.%s", getPrefix(muleContext), name, "worker"),
-                                                 muleContext.getConfiguration().getShutdownTimeout());
-    if (workManager instanceof MuleContextAware) {
-      ((MuleContextAware) workManager).setMuleContext(muleContext);
-    }
-    return workManager;
-  }
-
-  private WorkManagerSource createWorkManagerSource(WorkManager workManager) {
-    return () -> workManager;
-  }
 }

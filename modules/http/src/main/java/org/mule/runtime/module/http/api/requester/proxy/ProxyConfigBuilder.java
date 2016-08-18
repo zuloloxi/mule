@@ -6,8 +6,9 @@
  */
 package org.mule.runtime.module.http.api.requester.proxy;
 
-import org.mule.runtime.module.http.internal.request.DefaultProxyConfig;
 import org.mule.runtime.core.util.Preconditions;
+import org.mule.runtime.module.http.internal.request.DefaultProxyConfig;
+import org.mule.service.http.api.client.proxy.ProxyConfig;
 
 /**
  * Builder for http proxy configuration.

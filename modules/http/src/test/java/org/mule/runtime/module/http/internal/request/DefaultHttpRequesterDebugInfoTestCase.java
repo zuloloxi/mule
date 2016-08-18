@@ -49,7 +49,8 @@ import org.mule.runtime.core.construct.Flow;
 import org.mule.runtime.module.http.api.requester.HttpSendBodyMode;
 import org.mule.runtime.module.http.internal.HttpParam;
 import org.mule.runtime.module.http.internal.HttpSingleParam;
-import org.mule.runtime.module.http.internal.domain.request.HttpRequestAuthentication;
+import org.mule.service.http.api.client.HttpAuthenticationType;
+import org.mule.service.http.api.client.HttpRequestAuthentication;
 import org.mule.tck.junit4.AbstractMuleContextTestCase;
 
 public class DefaultHttpRequesterDebugInfoTestCase extends AbstractMuleContextTestCase {

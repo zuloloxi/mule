@@ -10,9 +10,9 @@ import org.mule.runtime.api.execution.CompletionHandler;
 import org.mule.runtime.core.api.context.WorkManager;
 import org.mule.runtime.core.api.lifecycle.Initialisable;
 import org.mule.runtime.core.api.lifecycle.Stoppable;
-import org.mule.runtime.module.http.internal.domain.request.HttpRequest;
-import org.mule.runtime.module.http.internal.domain.request.HttpRequestAuthentication;
-import org.mule.runtime.module.http.internal.domain.response.HttpResponse;
+import org.mule.service.http.api.domain.request.HttpRequest;
+import org.mule.service.http.api.client.HttpRequestAuthentication;
+import org.mule.service.http.api.domain.response.HttpResponse;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;

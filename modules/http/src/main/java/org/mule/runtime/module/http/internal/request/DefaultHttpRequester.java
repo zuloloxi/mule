@@ -13,7 +13,6 @@ import static org.mule.runtime.core.context.notification.ConnectorMessageNotific
 import static org.mule.runtime.core.context.notification.ConnectorMessageNotification.MESSAGE_REQUEST_END;
 import org.mule.runtime.api.execution.BlockingCompletionHandler;
 import org.mule.runtime.api.execution.CompletionHandler;
-import org.mule.runtime.core.DefaultMuleEvent;
 import org.mule.runtime.core.api.MessagingException;
 import org.mule.runtime.core.api.MuleContext;
 import org.mule.runtime.core.api.MuleEvent;
@@ -40,10 +39,10 @@ import org.mule.runtime.module.http.api.HttpAuthentication;
 import org.mule.runtime.module.http.api.requester.HttpSendBodyMode;
 import org.mule.runtime.module.http.internal.HttpParser;
 import org.mule.runtime.module.http.internal.ParameterMap;
-import org.mule.runtime.module.http.internal.domain.request.HttpRequest;
-import org.mule.runtime.module.http.internal.domain.request.HttpRequestAuthentication;
+import org.mule.service.http.api.domain.request.HttpRequest;
+import org.mule.service.http.api.client.HttpRequestAuthentication;
 import org.mule.runtime.module.http.internal.domain.request.HttpRequestBuilder;
-import org.mule.runtime.module.http.internal.domain.response.HttpResponse;
+import org.mule.service.http.api.domain.response.HttpResponse;
 
 import com.google.common.collect.Lists;
 

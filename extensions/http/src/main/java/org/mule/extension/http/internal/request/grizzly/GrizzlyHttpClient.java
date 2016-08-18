@@ -9,32 +9,31 @@ package org.mule.extension.http.internal.request.grizzly;
 import static com.ning.http.client.Realm.AuthScheme.NTLM;
 import static org.mule.runtime.module.http.api.HttpHeaders.Names.CONNECTION;
 import static org.mule.runtime.module.http.api.HttpHeaders.Values.CLOSE;
-import org.mule.extension.http.api.request.client.HttpClient;
-import org.mule.extension.http.api.request.client.UriParameters;
 import org.mule.extension.http.api.request.proxy.NtlmProxyConfig;
-import org.mule.extension.http.api.request.proxy.ProxyConfig;
 import org.mule.extension.http.internal.request.DefaultHttpRequest;
-import org.mule.extension.http.internal.request.client.HttpClientConfiguration;
-import org.mule.extension.socket.api.socket.tcp.TcpClientSocketProperties;
 import org.mule.runtime.api.tls.TlsContextFactory;
 import org.mule.runtime.api.tls.TlsContextTrustStoreConfiguration;
 import org.mule.runtime.core.api.MuleRuntimeException;
 import org.mule.runtime.core.config.i18n.CoreMessages;
 import org.mule.runtime.core.util.IOUtils;
 import org.mule.runtime.core.util.StringUtils;
-import org.mule.runtime.module.http.internal.domain.ByteArrayHttpEntity;
-import org.mule.runtime.module.http.internal.domain.InputStreamHttpEntity;
-import org.mule.runtime.module.http.internal.domain.MultipartHttpEntity;
-import org.mule.runtime.module.http.internal.domain.request.HttpRequest;
-import org.mule.runtime.module.http.internal.domain.request.HttpRequestAuthentication;
-import org.mule.runtime.module.http.internal.domain.response.HttpResponse;
 import org.mule.runtime.module.http.internal.domain.response.HttpResponseBuilder;
-import org.mule.runtime.module.http.internal.multipart.HttpPart;
-import org.mule.runtime.module.http.internal.request.HttpAuthenticationType;
 import org.mule.runtime.module.http.internal.request.grizzly.CompositeTransportCustomizer;
 import org.mule.runtime.module.http.internal.request.grizzly.CustomTimeoutThrottleRequestFilter;
 import org.mule.runtime.module.http.internal.request.grizzly.IOStrategyTransportCustomizer;
 import org.mule.runtime.module.http.internal.request.grizzly.LoggerTransportCustomizer;
+import org.mule.service.http.api.client.HttpAuthenticationType;
+import org.mule.service.http.api.client.HttpClient;
+import org.mule.service.http.api.client.HttpClientConfiguration;
+import org.mule.service.http.api.client.HttpRequestAuthentication;
+import org.mule.service.http.api.client.TcpClientSocketProperties;
+import org.mule.service.http.api.client.proxy.ProxyConfig;
+import org.mule.service.http.api.domain.entity.ByteArrayHttpEntity;
+import org.mule.service.http.api.domain.entity.InputStreamHttpEntity;
+import org.mule.service.http.api.domain.entity.multipart.HttpPart;
+import org.mule.service.http.api.domain.entity.multipart.MultipartHttpEntity;
+import org.mule.service.http.api.domain.request.HttpRequest;
+import org.mule.service.http.api.domain.response.HttpResponse;
 
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.AsyncHttpClientConfig;
@@ -66,7 +65,6 @@ public class GrizzlyHttpClient implements HttpClient {
 
   private static final Logger logger = LoggerFactory.getLogger(GrizzlyHttpClient.class);
 
-  private UriParameters uriParameters;
   private final TlsContextFactory tlsContextFactory;
   private final ProxyConfig proxyConfig;
 
@@ -81,7 +79,6 @@ public class GrizzlyHttpClient implements HttpClient {
   private SSLContext sslContext;
 
   public GrizzlyHttpClient(HttpClientConfiguration config) {
-    this.uriParameters = config.getUriParameters();
     this.tlsContextFactory = config.getTlsContextFactory();
     this.proxyConfig = config.getProxyConfig();
     this.clientSocketProperties = config.getClientSocketProperties();
@@ -200,11 +197,6 @@ public class GrizzlyHttpClient implements HttpClient {
     builder.setPooledConnectionIdleTimeout(connectionIdleTimeout);
 
     builder.setIOThreadMultiplier(1);
-  }
-
-  @Override
-  public UriParameters getDefaultUriParameters() {
-    return uriParameters;
   }
 
   @Override

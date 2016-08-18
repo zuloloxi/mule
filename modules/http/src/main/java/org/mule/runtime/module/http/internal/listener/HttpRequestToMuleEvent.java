@@ -13,20 +13,10 @@ import static org.mule.runtime.module.http.api.HttpConstants.ALL_INTERFACES_IP;
 import static org.mule.runtime.module.http.api.HttpHeaders.Names.CONTENT_TYPE;
 import static org.mule.runtime.module.http.api.HttpHeaders.Names.HOST;
 import static org.mule.runtime.module.http.internal.HttpParser.decodeUrlEncodedBody;
-import static org.mule.runtime.module.http.internal.domain.HttpProtocol.HTTP_0_9;
-import static org.mule.runtime.module.http.internal.domain.HttpProtocol.HTTP_1_0;
 import static org.mule.runtime.module.http.internal.multipart.HttpPartDataSource.multiPartPayloadForAttachments;
 import static org.mule.runtime.module.http.internal.util.HttpToMuleMessage.getMediaType;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-
+import static org.mule.service.http.api.domain.HttpProtocol.HTTP_0_9;
+import static org.mule.service.http.api.domain.HttpProtocol.HTTP_1_0;
 import org.mule.runtime.api.metadata.MediaType;
 import org.mule.runtime.core.DefaultMuleEvent;
 import org.mule.runtime.core.api.MuleContext;
@@ -38,12 +28,21 @@ import org.mule.runtime.core.session.DefaultMuleSession;
 import org.mule.runtime.core.util.IOUtils;
 import org.mule.runtime.module.http.api.HttpConstants;
 import org.mule.runtime.module.http.api.HttpHeaders;
-import org.mule.runtime.module.http.internal.domain.EmptyHttpEntity;
-import org.mule.runtime.module.http.internal.domain.HttpEntity;
-import org.mule.runtime.module.http.internal.domain.InputStreamHttpEntity;
-import org.mule.runtime.module.http.internal.domain.MultipartHttpEntity;
-import org.mule.runtime.module.http.internal.domain.request.HttpRequest;
-import org.mule.runtime.module.http.internal.domain.request.HttpRequestContext;
+import org.mule.service.http.api.domain.entity.EmptyHttpEntity;
+import org.mule.service.http.api.domain.entity.HttpEntity;
+import org.mule.service.http.api.domain.entity.InputStreamHttpEntity;
+import org.mule.service.http.api.domain.entity.multipart.MultipartHttpEntity;
+import org.mule.service.http.api.domain.request.HttpRequest;
+import org.mule.service.http.api.domain.request.HttpRequestContext;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 public class HttpRequestToMuleEvent {
 

@@ -8,9 +8,10 @@ package org.mule.runtime.module.http.internal.domain.request;
 
 import org.mule.runtime.module.http.internal.domain.BaseHttpMessage;
 import org.mule.runtime.module.http.internal.ParameterMap;
-import org.mule.runtime.module.http.internal.domain.HttpEntity;
-import org.mule.runtime.module.http.internal.domain.HttpProtocol;
-import org.mule.runtime.module.http.internal.domain.InputStreamHttpEntity;
+import org.mule.service.http.api.domain.entity.HttpEntity;
+import org.mule.service.http.api.domain.HttpProtocol;
+import org.mule.service.http.api.domain.entity.InputStreamHttpEntity;
+import org.mule.service.http.api.domain.request.HttpRequest;
 
 import java.util.ArrayList;
 import java.util.Collection;

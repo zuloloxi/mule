@@ -11,7 +11,7 @@ import static org.mule.runtime.core.util.StringUtils.WHITE_SPACE;
 
 import org.mule.runtime.core.api.MuleRuntimeException;
 import org.mule.runtime.core.util.StringUtils;
-import org.mule.runtime.module.http.internal.multipart.HttpPart;
+import org.mule.service.http.api.domain.entity.multipart.HttpPart;
 
 import com.google.common.collect.Lists;
 
