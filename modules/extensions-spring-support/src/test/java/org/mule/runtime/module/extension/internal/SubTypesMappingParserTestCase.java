@@ -135,6 +135,11 @@ public class SubTypesMappingParserTestCase extends AbstractConfigParserTestCase 
     assertThat(payload.get(1), instanceOf(HouseDoor.class));
     assertThat(((HouseDoor) payload.get(1)).isLocked(), is(false));
 
+    assertThat(payload.get(3), instanceOf(VeganCookBook.class));
+    assertThat(((VeganCookBook) payload.get(3)).getNumberOfPages(), is(1));
+    assertThat(((VeganCookBook) payload.get(3)).getMealDates(), hasSize(1));
+    assertThat(((VeganCookBook) payload.get(3)).getMealDates().get(0).toString(), is("2008-09-15T15:53:23"));
+
     assertThat(payload.get(2), instanceOf(FinalPojo.class));
     assertThat(((FinalPojo) payload.get(2)).getSomeString(), is("asChild"));
 

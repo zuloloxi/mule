@@ -37,4 +37,11 @@ public interface TypeDefinitionVisitor {
    * @param mapEntryType the holder for the key type and value type
    */
   void onMapType(TypeDefinition.MapEntryType mapEntryType);
+
+  /**
+   * Invoked when the {@link TypeDefinition} it's defined to be a map entry.
+   *
+   * @param mapEntryType the holder for the key type and value type
+   */
+  void onCollectionType(TypeDefinition.CollectionEntryType collectionEntryType);
 }

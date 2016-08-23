@@ -19,4 +19,8 @@ public class VeganFidelityOperation {
     throw new IllegalArgumentException("I SHALL NEVER EAT " + food.toString());
   }
 
+  public VeganCookBook readCookBook(VeganCookBook cookBook){
+    return cookBook;
+  }
+
 }

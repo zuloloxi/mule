@@ -17,6 +17,7 @@ import org.mule.runtime.config.spring.dsl.model.ComponentIdentifier;
 import org.mule.runtime.config.spring.dsl.processor.TypeDefinitionVisitor;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -317,7 +318,8 @@ public class ComponentBuildingDefinition {
       checkState(!definition.typeConverter.isPresent() || (definition.typeConverter.isPresent() && componentType.isPresent()),
                  TYPE_CONVERTER_AND_UNKNOWN_TYPE_MESSAGE);
       checkState(!definition.typeConverter.isPresent()
-          || (definition.typeConverter.isPresent() && (isSimpleType(componentType.get()) || isMapType(componentType.get()))),
+          || (definition.typeConverter.isPresent() && (isSimpleType(componentType.get()) ||
+                   isCollectionType(componentType.get()) || isMapType(componentType.get()))),
                  format(TYPE_CONVERTER_AND_NO_SIMPLE_TYPE_MESSAGE_TEMPLATE, componentType.orElse(Object.class).getName()));
       checkState(!definition.keyTypeConverter.isPresent()
           || (definition.keyTypeConverter.isPresent() && componentType.isPresent() && isMapType(componentType.get())),
@@ -328,6 +330,10 @@ public class ComponentBuildingDefinition {
 
     private boolean isMapType(Class componentType) {
       return Map.class.isAssignableFrom(componentType);
+    }
+
+    private boolean isCollectionType(Class componentType) {
+      return Collection.class.isAssignableFrom(componentType);
     }
 
     // TODO MULE-9681: remove for some other semantic. The API should not define something as "prototype" it should declare if
@@ -354,6 +360,11 @@ public class ComponentBuildingDefinition {
         @Override
         public void onMapType(TypeDefinition.MapEntryType mapEntryType) {
           typeReference.set(Map.class);
+        }
+
+        @Override
+        public void onCollectionType(TypeDefinition.CollectionEntryType collectionEntryType) {
+          typeReference.set(Collection.class);
         }
       });
       return ofNullable(typeReference.get());

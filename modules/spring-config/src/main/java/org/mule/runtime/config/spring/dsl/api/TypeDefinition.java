@@ -17,6 +17,7 @@ public class TypeDefinition {
   private Class<?> type;
   private String attributeName;
   private MapEntryType mapType;
+  private CollectionEntryType collectionType;
 
   private TypeDefinition() {}
 
@@ -51,6 +52,8 @@ public class TypeDefinition {
       typeDefinitionVisitor.onType(type);
     } else if (mapType != null) {
       typeDefinitionVisitor.onMapType(mapType);
+    } else if (collectionType != null) {
+      typeDefinitionVisitor.onCollectionType(collectionType);
     } else {
       typeDefinitionVisitor.onConfigurationAttribute(attributeName);
     }
@@ -59,6 +62,12 @@ public class TypeDefinition {
   public static TypeDefinition fromMapEntryType(Class<?> keyType, Class<?> valueType) {
     TypeDefinition typeDefinition = new TypeDefinition();
     typeDefinition.mapType = new MapEntryType(keyType, valueType);
+    return typeDefinition;
+  }
+
+  public static TypeDefinition fromCollectionEntryType(Class<?> valueType) {
+    TypeDefinition typeDefinition = new TypeDefinition();
+    typeDefinition.collectionType = new CollectionEntryType(valueType);
     return typeDefinition;
   }
 
@@ -85,6 +94,29 @@ public class TypeDefinition {
      */
     public Class<?> getKeyType() {
       return keyType;
+    }
+
+    /**
+     * @return the value type.
+     */
+    public Class<?> getValueType() {
+      return valueType;
+    }
+  }
+
+  /**
+   * Instances of this class represent the type of a list entry.
+   *
+   * @since 4.0
+   *
+   * @param <ValueType> the value type.=
+   */
+  public static class CollectionEntryType<ValueType> {
+
+    private Class<ValueType> valueType;
+
+    public CollectionEntryType(Class<ValueType> valueType) {
+      this.valueType = valueType;
     }
 
     /**

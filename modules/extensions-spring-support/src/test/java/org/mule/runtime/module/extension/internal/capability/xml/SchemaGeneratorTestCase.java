@@ -126,6 +126,8 @@ public class SchemaGeneratorTestCase extends AbstractMuleTestCase {
     XmlModelProperty capability = extensionUnderTest.getModelProperty(XmlModelProperty.class).get();
 
     String schema = generator.generate(extensionUnderTest, capability, new SchemaTestDslContext());
+    org.mule.runtime.core.util.FileUtils.writeStringToFile(new java.io.File(extensionUnderTest.getName().concat(".xsd")), schema);
+
     compareXML(expectedSchema, schema);
   }
 

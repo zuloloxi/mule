@@ -115,7 +115,15 @@
             </subtypes:door>
             <subtypes:final-pojo someString="asChild"/>
             <subtypes:cook-book>
-                <vegan:vegan-cook-book numberOfPages="1"/>
+                <vegan:vegan-cook-book numberOfPages="1">
+                    <vegan:meal-dates>
+                        <vegan:meal-date value="2008-09-15T15:53:23"/>
+                    </vegan:meal-dates>
+                    <vegan:meal-week-days>
+                        <vegan:meal-week-day key="monday" value="2016-07-15T15:53:23"/>
+                        <vegan:meal-week-day key="tuesday" value="2015-08-15T15:53:23"/>
+                    </vegan:meal-week-days>
+                </vegan:vegan-cook-book>
             </subtypes:cook-book>
             <subtypes:square-shape>
                 <subtypes:square side="4" area="16"/>

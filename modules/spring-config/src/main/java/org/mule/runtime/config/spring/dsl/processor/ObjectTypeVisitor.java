@@ -12,7 +12,6 @@ import static org.mule.runtime.core.config.i18n.MessageFactory.createStaticMessa
 import org.mule.runtime.config.spring.dsl.api.TypeDefinition;
 import org.mule.runtime.config.spring.dsl.model.ComponentModel;
 import org.mule.runtime.core.api.MuleRuntimeException;
-import org.mule.runtime.core.config.i18n.CoreMessages;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,6 +38,7 @@ public class ObjectTypeVisitor implements TypeDefinitionVisitor {
   private final ComponentModel componentModel;
   private Class<?> type;
   private Optional<TypeDefinition.MapEntryType> mapEntryType = empty();
+  private Optional<TypeDefinition.CollectionEntryType> collectionEntryType = empty();
 
   public ObjectTypeVisitor(ComponentModel componentModel) {
     this.componentModel = componentModel;
@@ -81,11 +81,22 @@ public class ObjectTypeVisitor implements TypeDefinitionVisitor {
         of(new TypeDefinition.MapEntryType(resolveType(mapEntryType.getKeyType()), resolveType(mapEntryType.getValueType())));
   }
 
+  @Override
+  public void onCollectionType(TypeDefinition.CollectionEntryType collectionEntryType) {
+    this.type = collectionEntryType.getClass();
+    this.collectionEntryType=
+      of(new TypeDefinition.CollectionEntryType(resolveType(collectionEntryType.getValueType())));
+  }
+
   public Class<?> getType() {
     return type;
   }
 
   public Optional<TypeDefinition.MapEntryType> getMapEntryType() {
     return mapEntryType;
+  }
+
+  public Optional<TypeDefinition.CollectionEntryType> getCollectionEntryType() {
+    return collectionEntryType;
   }
 }

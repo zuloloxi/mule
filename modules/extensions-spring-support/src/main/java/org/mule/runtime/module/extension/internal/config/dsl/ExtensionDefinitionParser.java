@@ -27,7 +27,6 @@ import static org.mule.runtime.extension.api.introspection.parameter.ExpressionS
 import static org.mule.runtime.extension.api.util.NameUtils.hyphenize;
 import static org.mule.runtime.extension.xml.dsl.api.XmlModelUtils.getHintsModelProperty;
 import static org.mule.runtime.module.extension.internal.util.IntrospectionUtils.getMemberName;
-
 import org.mule.metadata.api.ClassTypeLoader;
 import org.mule.metadata.api.model.ArrayType;
 import org.mule.metadata.api.model.DateTimeType;
@@ -389,10 +388,10 @@ public abstract class ExtensionDefinitionParser {
       String itemIdentifier = collectionItemDsl.get().getElementName();
       String itemNamespace = collectionItemDsl.get().getNamespace();
 
-      arrayType.getType().accept(new BasicTypeMetadataVisitor() {
+      arrayType.getType().accept(new MetadataTypeVisitor() {
 
         @Override
-        protected void visitBasicType(MetadataType metadataType) {
+        protected void defaultVisit(MetadataType metadataType) {
           Builder itemDefinitionBuilder = baseDefinitionBuilder.copy().withIdentifier(itemIdentifier).withNamespace(itemNamespace)
               .withTypeDefinition(fromType(getType(metadataType)))
               .withTypeConverter(value -> resolverOf(name, metadataType, value, getDefaultValue(metadataType).orElse(null),
@@ -400,6 +399,24 @@ public abstract class ExtensionDefinitionParser {
 
           addDefinition(itemDefinitionBuilder.build());
         }
+
+        //public void visitDateTime(DateTimeType dateTimeType) {
+        //  Builder itemDefinitionBuilder = baseDefinitionBuilder.copy().withIdentifier(itemIdentifier).withNamespace(itemNamespace)
+        //    .withTypeDefinition(fromType(ValueResolver.class))
+        //    .withTypeConverter(value -> resolverOf(name, metadataType, value, getDefaultValue(metadataType).orElse(null),
+        //                                           getExpressionSupport(metadataType), false));
+        //
+        //  addDefinition(itemDefinitionBuilder.build());
+        //}
+        //
+        //public void visitDate(DateType dateType) {
+        //  Builder itemDefinitionBuilder = baseDefinitionBuilder.copy().withIdentifier(itemIdentifier).withNamespace(itemNamespace)
+        //    .withTypeDefinition(fromType(getType(metadataType)))
+        //    .withTypeConverter(value -> resolverOf(name, metadataType, value, getDefaultValue(metadataType).orElse(null),
+        //                                           getExpressionSupport(metadataType), false));
+        //
+        //  addDefinition(itemDefinitionBuilder.build());
+        //}
 
         @Override
         public void visitObject(ObjectType objectType) {

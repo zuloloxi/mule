@@ -6,13 +6,13 @@
  */
 package org.mule.runtime.config.spring.dsl.spring;
 
+import static org.springframework.beans.factory.support.BeanDefinitionBuilder.genericBeanDefinition;
 import org.mule.runtime.config.spring.dsl.api.ComponentBuildingDefinition;
 import org.mule.runtime.config.spring.dsl.model.ComponentModel;
 import org.mule.runtime.config.spring.dsl.processor.ObjectTypeVisitor;
 
 import java.util.Collection;
 
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
 
 /**
@@ -38,15 +38,23 @@ public class CollectionBeanDefinitionCreator extends BeanDefinitionCreator {
     componentBuildingDefinition.getTypeDefinition().visit(objectTypeVisitor);
     if (Collection.class.isAssignableFrom(objectTypeVisitor.getType())) {
       componentModel.setType(objectTypeVisitor.getType());
-      ManagedList<Object> managedList = new ManagedList<>();
-      for (ComponentModel innerComponent : componentModel.getInnerComponents()) {
-        Object bean =
+
+
+      //if (isSimpleType(valueType) || componentModel.getInnerComponents().isEmpty()){
+      //  value = getConvertibleBeanDefinition(objectTypeVisitor.getMapEntryType().get().getValueType(),
+      //                                       componentModel.getParameters().get(SIMPLE_TYPE_VALUE_PARAMETER_NAME),
+      //                                       componentBuildingDefinition.getTypeConverter());
+      //} else {
+        ManagedList<Object> managedList = new ManagedList<>();
+        for (ComponentModel innerComponent : componentModel.getInnerComponents()) {
+          Object bean =
             innerComponent.getBeanDefinition() == null ? innerComponent.getBeanReference() : innerComponent.getBeanDefinition();
-        managedList.add(bean);
-      }
-      componentModel.setBeanDefinition(BeanDefinitionBuilder.genericBeanDefinition(objectTypeVisitor.getType())
-          .addConstructorArgValue(managedList).getBeanDefinition());
-      return true;
+          managedList.add(bean);
+        }
+        componentModel.setBeanDefinition(genericBeanDefinition(objectTypeVisitor.getType())
+                                           .addConstructorArgValue(managedList).getBeanDefinition());
+        return true;
+      //}
     }
     return false;
   }
