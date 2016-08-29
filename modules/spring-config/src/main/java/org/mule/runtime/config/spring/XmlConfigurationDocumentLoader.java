@@ -10,9 +10,11 @@ import org.mule.runtime.core.api.MuleRuntimeException;
 
 import java.io.InputStream;
 
-import org.springframework.beans.factory.xml.DelegatingEntityResolver;
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 import org.xml.sax.helpers.DefaultHandler;
 
 /**
@@ -36,14 +38,34 @@ public class XmlConfigurationDocumentLoader {
    */
   public Document loadDocument(InputStream inputStream) {
     try {
+      MuleLoggerErrorHandler errorHandler = new MuleLoggerErrorHandler();
       Document document = new MuleDocumentLoader()
           .loadDocument(new InputSource(inputStream),
-                        new DelegatingEntityResolver(Thread.currentThread().getContextClassLoader()), new DefaultHandler(),
+                        new ModuleDelegatingEntityResolver(), errorHandler,
+                        //new DelegatingEntityResolver(Thread.currentThread().getContextClassLoader()), errorHandler,
                         VALIDATION_XSD, true);
+      errorHandler.displayErrors();
       return document;
     } catch (Exception e) {
       throw new MuleRuntimeException(e);
     }
   }
 
+  public static class MuleLoggerErrorHandler extends DefaultHandler {
+
+    StringBuilder sb = new StringBuilder();
+
+    @Override
+    public void error(SAXParseException e) throws SAXException {
+      sb.append(String.format("\tMSG:[%s]\n", e.toString()));
+    }
+
+    public void displayErrors() {
+      String errors = sb.toString();
+      if (StringUtils.isNotBlank(errors)) {
+        String errorOrErrors = StringUtils.countMatches(errors, "\n") > 1 ? "ERRORS" : "ERROR";
+        System.out.println(String.format(errorOrErrors + " IN FILE \n %s", errors));
+      }
+    }
+  }
 }
