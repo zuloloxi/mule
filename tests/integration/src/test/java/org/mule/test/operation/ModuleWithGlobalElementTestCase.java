@@ -15,7 +15,6 @@ import org.mule.runtime.core.api.Event;
 import org.mule.runtime.core.exception.MessagingException;
 import org.mule.runtime.extension.api.annotation.param.Ignore;
 
-
 import org.hamcrest.core.Is;
 import org.junit.Test;
 
