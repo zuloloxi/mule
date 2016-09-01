@@ -59,10 +59,10 @@ public class ExtensionManifestGeneratorTestCase extends AbstractGeneratedResourc
   public void generate() throws Exception {
     InputStream in = getClass().getResourceAsStream("/heisenberg-test-manifest.xml");
     assertThat(in, is(notNullValue()));
-    String expectedSchema = IOUtils.toString(in);
+    String expected = IOUtils.toString(in);
     Optional<GeneratedResource> resource = generator.generateResource(extensionModel);
     assertThat(resource.isPresent(), is(true));
 
-    compareXML(expectedSchema, new String(resource.get().getContent()));
+    compareXML(expected, new String(resource.get().getContent()));
   }
 }

@@ -6,6 +6,7 @@
  */
 package org.mule.runtime.module.extension.internal.resources.manifest;
 
+import static java.util.Collections.emptyList;
 import static org.mule.runtime.module.extension.internal.ExtensionProperties.EXTENSION_MANIFEST_FILE_NAME;
 import static org.mule.runtime.module.extension.internal.introspection.describer.AnnotationsBasedDescriber.DESCRIBER_ID;
 import static org.mule.runtime.module.extension.internal.introspection.describer.AnnotationsBasedDescriber.TYPE_PROPERTY_NAME;
@@ -16,7 +17,9 @@ import org.mule.runtime.extension.api.persistence.manifest.ExtensionManifestXmlS
 import org.mule.runtime.extension.api.resources.GeneratedResource;
 import org.mule.runtime.extension.api.resources.spi.GeneratedResourceFactory;
 import org.mule.runtime.module.extension.internal.model.property.ImplementingTypeModelProperty;
+import org.mule.runtime.module.extension.internal.model.property.PluginDependenciesModelProperty;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -32,6 +35,9 @@ public final class ExtensionManifestGenerator implements GeneratedResourceFactor
   @Override
   public Optional<GeneratedResource> generateResource(ExtensionModel extensionModel) {
     Optional<ImplementingTypeModelProperty> typeProperty = extensionModel.getModelProperty(ImplementingTypeModelProperty.class);
+    List<String> pluginDependencies = extensionModel.getModelProperty(PluginDependenciesModelProperty.class)
+        .map(PluginDependenciesModelProperty::getPluginDependencies)
+        .orElse(emptyList());
 
     if (!typeProperty.isPresent()) {
       return Optional.empty();
@@ -39,9 +45,13 @@ public final class ExtensionManifestGenerator implements GeneratedResourceFactor
 
     ExportedArtifactsCollector exportCollector = new ExportedArtifactsCollector(extensionModel);
     ExtensionManifestBuilder builder = new ExtensionManifestBuilder();
-    builder.setName(extensionModel.getName()).setDescription(extensionModel.getDescription())
-        .setVersion(extensionModel.getVersion()).setMinMuleVersion(extensionModel.getMinMuleVersion())
-        .addExportedPackages(exportCollector.getExportedPackages()).addExportedResources(exportCollector.getExportedResources())
+    builder.setName(extensionModel.getName())
+        .setDescription(extensionModel.getDescription())
+        .setVersion(extensionModel.getVersion())
+        .setMinMuleVersion(extensionModel.getMinMuleVersion())
+        .addExportedPackages(exportCollector.getExportedPackages())
+        .addExportedResources(exportCollector.getExportedResources())
+        .addPluginDependencies(pluginDependencies)
         .withDescriber().setId(DESCRIBER_ID).addProperty(TYPE_PROPERTY_NAME, typeProperty.get().getType().getName());
 
     String manifestXml = new ExtensionManifestXmlSerializer().serialize(builder.build());

@@ -7,6 +7,7 @@
 package org.mule.runtime.module.extension.internal.introspection.describer;
 
 import static java.lang.String.format;
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang.StringUtils.EMPTY;
@@ -38,6 +39,7 @@ import org.mule.runtime.extension.api.annotation.ExtensionOf;
 import org.mule.runtime.extension.api.annotation.Operations;
 import org.mule.runtime.extension.api.annotation.Parameter;
 import org.mule.runtime.extension.api.annotation.RestrictedTo;
+import org.mule.runtime.extension.api.annotation.capability.PluginDependencies;
 import org.mule.runtime.extension.api.annotation.dsl.xml.XmlHints;
 import org.mule.runtime.extension.api.annotation.metadata.MetadataKeyId;
 import org.mule.runtime.extension.api.annotation.param.Connection;
@@ -61,6 +63,7 @@ import org.mule.runtime.extension.api.introspection.declaration.spi.Describer;
 import org.mule.runtime.extension.api.introspection.declaration.type.ExtensionsTypeLoaderFactory;
 import org.mule.runtime.extension.api.introspection.parameter.ExpressionSupport;
 import org.mule.runtime.extension.api.introspection.property.LayoutModelProperty;
+import org.mule.runtime.extension.api.introspection.property.PagedOperationModelProperty;
 import org.mule.runtime.extension.api.introspection.streaming.PagingProvider;
 import org.mule.runtime.extension.api.manifest.DescriberManifest;
 import org.mule.runtime.extension.api.runtime.operation.InterceptingCallback;
@@ -97,7 +100,7 @@ import org.mule.runtime.module.extension.internal.model.property.ImplementingPar
 import org.mule.runtime.module.extension.internal.model.property.ImplementingTypeModelProperty;
 import org.mule.runtime.module.extension.internal.model.property.InfrastructureParameterModelProperty;
 import org.mule.runtime.module.extension.internal.model.property.InterceptingModelProperty;
-import org.mule.runtime.extension.api.introspection.property.PagedOperationModelProperty;
+import org.mule.runtime.module.extension.internal.model.property.PluginDependenciesModelProperty;
 import org.mule.runtime.module.extension.internal.model.property.TypeRestrictionModelProperty;
 import org.mule.runtime.module.extension.internal.runtime.executor.ReflectiveOperationExecutorFactory;
 import org.mule.runtime.module.extension.internal.runtime.source.DefaultSourceFactory;
@@ -167,7 +170,8 @@ public final class AnnotationsBasedDescriber implements Describer {
             .withMinMuleVersion(new MuleVersion(extension.minMuleVersion()))
             .describedAs(extension.description())
             .withExceptionEnricherFactory(getExceptionEnricherFactory(extensionElement))
-            .withModelProperty(new ImplementingTypeModelProperty(extensionType));
+            .withModelProperty(new ImplementingTypeModelProperty(extensionType))
+            .withModelProperty(new PluginDependenciesModelProperty(getPluginDependencies(extensionType)));
 
     declareConfigurations(declarer, extensionElement);
     declareConnectionProviders(declarer, extensionElement);
@@ -182,6 +186,11 @@ public final class AnnotationsBasedDescriber implements Describer {
 
   private String getVersion(Extension extension) {
     return versionResolver.resolveVersion(extension);
+  }
+
+  private List<String> getPluginDependencies(Class<?> extensionType) {
+    PluginDependencies dependencies = extensionType.getAnnotation(PluginDependencies.class);
+    return dependencies != null ? asList(dependencies.value()) : emptyList();
   }
 
   private void declareConfigurations(ExtensionDeclarer declaration, ExtensionElement extensionElement) {

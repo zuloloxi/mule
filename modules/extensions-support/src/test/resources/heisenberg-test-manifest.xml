@@ -17,6 +17,7 @@
         <resource>/META-INF/spring.handlers</resource>
         <resource>/META-INF/spring.schemas</resource>
     </exportedResources>
+    <pluginDependencies/>
     <describer>
         <id>annotations</id>
         <properties>
