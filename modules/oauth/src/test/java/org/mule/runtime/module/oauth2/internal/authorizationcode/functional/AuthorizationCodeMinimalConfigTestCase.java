@@ -25,7 +25,7 @@ public class AuthorizationCodeMinimalConfigTestCase extends AbstractAuthorizatio
   public void hitRedirectUrlAndGetToken() throws Exception {
     configureWireMockToExpectTokenPathRequestForAuthorizationCodeGrantType();
 
-    Request.Get(redirectUrl.getValue() + "?" + OAuthConstants.CODE_PARAMETER + "=" + AUTHENTICATION_CODE)
+    Request.Get(localCallbackUrl.getValue() + "?" + OAuthConstants.CODE_PARAMETER + "=" + AUTHENTICATION_CODE)
         .connectTimeout(REQUEST_TIMEOUT).socketTimeout(REQUEST_TIMEOUT).execute();
 
     verifyRequestDoneToTokenUrlForAuthorizationCode();
