@@ -6,20 +6,28 @@
  */
 package org.mule.runtime.config.spring.dsl.model.extension;
 
+import org.mule.metadata.api.model.MetadataType;
+
 import com.google.common.base.Optional;
 
 public class ParameterExtension {
 
-  private String paramName;
+  private String name;
+  private MetadataType type;
   private Optional<String> defaultValue;
 
-  public ParameterExtension(String paramName, String defaultValue) {
-    this.paramName = paramName;
+  public ParameterExtension(String name, MetadataType type, String defaultValue) {
+    this.name = name;
+    this.type = type;
     this.defaultValue = Optional.fromNullable(defaultValue);
   }
 
-  public String getParamName() {
-    return paramName;
+  public String getName() {
+    return name;
+  }
+
+  public MetadataType getType() {
+    return type;
   }
 
   public Optional<String> getDefaultValue() {

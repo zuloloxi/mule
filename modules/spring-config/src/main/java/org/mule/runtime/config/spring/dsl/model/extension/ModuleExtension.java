@@ -15,18 +15,24 @@ import java.util.Map;
 
 public class ModuleExtension {
 
-  private String namespace;
+  private final String name;
+  private final String namespace;
   private List<ParameterExtension> properties = new ArrayList<>();
   private Map<String, OperationExtension> operations = new HashMap<>();
   private ComponentModel componentModel;
   private List<ComponentModel> globalElements = new ArrayList<>();
 
-  public ModuleExtension(String namespace, ComponentModel componentModel) {
+  public ModuleExtension(String name, String namespace, ComponentModel componentModel) {
+    this.name = name;
     this.namespace = namespace;
     this.componentModel = componentModel;
   }
 
   public String getName() {
+    return name;
+  }
+
+  public String getNamespace() {
     return namespace;
   }
 
@@ -56,5 +62,10 @@ public class ModuleExtension {
 
   public void setGlobalElements(List<ComponentModel> globalElements) {
     this.globalElements = globalElements;
+  }
+
+  public boolean hasConfig() {
+    return !(properties.isEmpty()
+        && globalElements.isEmpty());
   }
 }

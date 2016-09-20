@@ -18,35 +18,28 @@ import static org.mule.runtime.config.spring.dsl.model.ModuleModel.OPERATION_PAR
 import static org.mule.runtime.config.spring.dsl.model.ModuleModel.OPERATION_PROPERTY_PREFIX;
 import static org.mule.runtime.config.spring.dsl.processor.xml.CoreXmlNamespaceInfoProvider.CORE_NAMESPACE_NAME;
 import static org.mule.runtime.config.spring.dsl.processor.xml.XmlCustomAttributeHandler.from;
-import static org.mule.runtime.config.spring.dsl.processor.xml.XmlCustomAttributeHandler.to;
 import static org.mule.runtime.core.config.i18n.I18nMessageFactory.createStaticMessage;
 import static org.mule.runtime.extension.api.util.NameUtils.hyphenize;
 import static org.mule.runtime.extension.api.util.NameUtils.pluralize;
-import org.mule.runtime.config.spring.XmlConfigurationDocumentLoader;
 import org.mule.runtime.config.spring.dsl.api.ComponentBuildingDefinition;
 import org.mule.runtime.config.spring.dsl.api.config.ArtifactConfiguration;
 import org.mule.runtime.config.spring.dsl.api.config.ComponentConfiguration;
 import org.mule.runtime.config.spring.dsl.model.extension.ModuleExtension;
 import org.mule.runtime.config.spring.dsl.model.extension.OperationExtension;
 import org.mule.runtime.config.spring.dsl.model.extension.ParameterExtension;
+import org.mule.runtime.config.spring.dsl.model.extension.loader.ModuleLoader;
+import org.mule.runtime.config.spring.dsl.model.extension.schema.ModuleSchemaGenerator;
 import org.mule.runtime.config.spring.dsl.processor.ArtifactConfig;
 import org.mule.runtime.config.spring.dsl.processor.ConfigFile;
-import org.mule.runtime.config.spring.dsl.processor.ConfigLine;
-import org.mule.runtime.config.spring.dsl.processor.SimpleConfigAttribute;
-import org.mule.runtime.config.spring.dsl.processor.xml.XmlApplicationParser;
 import org.mule.runtime.config.spring.dsl.processor.xml.XmlCustomAttributeHandler;
-import org.mule.runtime.config.spring.extension.loader.ModuleXmlLoader;
-import org.mule.runtime.config.spring.extension.xml.ModuleSchemaGenerator;
 import org.mule.runtime.core.api.MuleRuntimeException;
 import org.mule.runtime.core.api.config.ConfigurationException;
 import org.mule.runtime.core.config.ComponentIdentifier;
-import org.mule.runtime.core.registry.SpiServiceRegistry;
 
 import com.google.common.collect.ImmutableSet;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -64,7 +57,6 @@ import javax.xml.XMLConstants;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.util.PropertyPlaceholderHelper;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -257,7 +249,6 @@ public class ApplicationModel {
 
   private List<ComponentModel> muleComponentModels = new LinkedList<>();
   private List<ComponentModel> springComponentModels = new LinkedList<>();
-  private PropertyPlaceholderHelper propertyPlaceholderHelper = new PropertyPlaceholderHelper("${", "}");
   private Properties applicationProperties;
   private Map<String, ModuleExtension> modules;
 
@@ -302,7 +293,7 @@ public class ApplicationModel {
     validateModel(componentBuildingDefinitionRegistry);
     createEffectiveModel();
 
-    modules = getModulesUsedInApp();
+    modules = getModulesUsedInApp(); //TODO ModuleLoader should be replaced with this one
     createOperationRefEffectiveModel();
     createConfigRefEffectiveModel();
   }
@@ -339,14 +330,14 @@ public class ApplicationModel {
   }
 
   private Map<String, ModuleExtension> getModulesUsedIn(ComponentModel muleRootComponentModel) {
-    ModuleXmlLoader moduleXmlLoader = new ModuleXmlLoader();
+    ModuleLoader moduleLoader = new ModuleLoader();
     Map<String, String> schemaLocations = getSchemaLocations(muleRootComponentModel);
     Map<String, ModuleExtension> modulesExtension = new HashMap<>();
 
     schemaLocations.forEach((namespace, location) -> {
-      Optional<URL> url = moduleXmlLoader.loadModule(location);
-      if (url.isPresent()) {
-        ModuleExtension moduleExtension = getModuleFor(url.get());
+      Optional<ModuleExtension> extensionOptional = moduleLoader.lookup(location, applicationProperties);
+      if (extensionOptional.isPresent()) {
+        ModuleExtension moduleExtension = extensionOptional.get();
         modulesExtension.put(moduleExtension.getName(), moduleExtension);
       }
     });
@@ -354,25 +345,43 @@ public class ApplicationModel {
     return modulesExtension;
   }
 
-  private ModuleExtension getModuleFor(URL url) {
-    //TODO WIP-OPERATIONS look if this makes sense in the root level... or completely outside of this class
-    XmlConfigurationDocumentLoader xmlConfigurationDocumentLoader = new XmlConfigurationDocumentLoader();
-    InputStream inputStream = null; //TODO WIP-OPERATIONS this is ugly, fix
-    try {
-      inputStream = url.openStream();
-    } catch (IOException e) {
-      throw new IllegalArgumentException(String.format("There was an issue while parsing the module for [%s]", url.getFile()));
-    }
-    Document moduleDocument = xmlConfigurationDocumentLoader.loadDocument(inputStream);
-    XmlApplicationParser xmlApplicationParser = new XmlApplicationParser(new SpiServiceRegistry());
-    Optional<ConfigLine> parseModule = xmlApplicationParser.parse(moduleDocument.getDocumentElement());
-    if (!parseModule.isPresent()) {
-      throw new IllegalArgumentException(String.format("There was an issue while parsing the module for [%s]", url.getFile()));
-    }
-    List<ComponentModel> componentModels = extractComponentDefinitionModel(asList(parseModule.get()), url.getFile());
-    ModuleExtension moduleExtension = new ModuleModel().loadModule(componentModels.get(0));
-    return moduleExtension;
-  }
+  //private ModuleExtension getModuleFor(URL url) {
+  //  //Document moduleDocument = getXmlDocument(url);
+  //  XmlConfigurationDocumentLoader xmlConfigurationDocumentLoader = new XmlConfigurationDocumentLoader();
+  //  Document moduleDocument =  xmlConfigurationDocumentLoader.loadDocument(url.openStream());
+  //
+  //  XmlApplicationParser xmlApplicationParser = new XmlApplicationParser(new SpiServiceRegistry());
+  //  Optional<ConfigLine> parseModule = xmlApplicationParser.parse(moduleDocument.getDocumentElement());
+  //  if (!parseModule.isPresent()) {
+  //    throw new IllegalArgumentException(String.format("There was an issue while parsing the module for [%s]", url.getFile()));
+  //  }
+  //  //List<ComponentModel> componentModels = extractComponentDefinitionModel(asList(parseModule.get()), url.getFile());
+  //  //ModuleExtension moduleExtension = new ModuleModel().loadModule(componentModels.get(0));
+  //
+  //  ComponentModelReader componentModelReader = new ComponentModelReader(applicationProperties);
+  //  ModuleExtension moduleExtension =
+  //      new ModuleModel().loadModule(componentModelReader.extractComponentDefinitionModel(parseModule.get(), url.getFile()));
+  //  return moduleExtension;
+  //}
+  //
+  ///**
+  // * TODO WIP-OPERATIONS copied from MuleArtifactContext#getXmlDocument
+  // */ //TODO WIP-OPERATIONS remove dead code
+  //private static final int VALIDATION_XSD = 3;
+  //
+  //private Document getXmlDocument(URL url) {
+  //  try {
+  //    String filename = url.getFile();
+  //    InputStream byteStream = url.openStream();
+  //    MuleArtifactContext.MuleLoggerErrorHandler errorHandler = new MuleArtifactContext.MuleLoggerErrorHandler(filename);
+  //    Document document = new MuleDocumentLoader()
+  //        .loadDocument(new InputSource(byteStream), new ModuleDelegatingEntityResolver(), errorHandler, VALIDATION_XSD, true);
+  //    errorHandler.displayErrors();
+  //    return document;
+  //  } catch (Exception e) {
+  //    throw new MuleRuntimeException(e);
+  //  }
+  //}
 
   /**
    * returns a map with the namespaces and locations from the xsi:schemaLocation attribute.
@@ -534,7 +543,7 @@ public class ApplicationModel {
                                                        List<ParameterExtension> parameters) {
     Map<String, String> valuesMap = new HashMap<>();
     for (ParameterExtension parameterExtension : parameters) {
-      String paramName = parameterExtension.getParamName();
+      String paramName = parameterExtension.getName();
       String value = null;
       if (componentModel.getParameters().containsKey(paramName)) {
         value = componentModel.getParameters().get(paramName);
@@ -627,6 +636,7 @@ public class ApplicationModel {
     // TODO MULE-9825: a new mechanism for property placeholders need to be defined
     final List<String> locations = new ArrayList<>();
     final Map<String, String> globalProperties = new HashMap<>();
+    final PropertyPlaceholderHelper propertyPlaceholderHelper = new PropertyPlaceholderHelper("${", "}");
     artifactConfig.getConfigFiles().stream().forEach(configFile -> {
       configFile.getConfigLines().get(0).getChildren().stream().forEach(configLine -> {
         if (GLOBAL_PROPERTY.equals(configLine.getIdentifier())) {
@@ -679,13 +689,14 @@ public class ApplicationModel {
 
   private void convertConfigFileToComponentModel(ArtifactConfig artifactConfig) {
     List<ConfigFile> configFiles = artifactConfig.getConfigFiles();
+    ComponentModelReader componentModelReader = new ComponentModelReader(applicationProperties);
     configFiles.stream().forEach(configFile -> {
-      List<ComponentModel> componentModels =
-          extractComponentDefinitionModel(asList(configFile.getConfigLines().get(0)), configFile.getFilename());
+      ComponentModel componentModel =
+          componentModelReader.extractComponentDefinitionModel(configFile.getConfigLines().get(0), configFile.getFilename());
       if (isMuleConfigFile(configFile)) {
-        muleComponentModels.addAll(componentModels);
+        muleComponentModels.add(componentModel);
       } else {
-        springComponentModels.addAll(componentModels);
+        springComponentModels.add(componentModel);
       }
     });
 
@@ -899,48 +910,48 @@ public class ApplicationModel {
     task.accept(component);
   }
 
-  private List<ComponentModel> extractComponentDefinitionModel(List<ConfigLine> configLines, String configFileName) {
-    List<ComponentModel> models = new ArrayList<>();
-    for (final ConfigLine configLine : configLines) {
-      String namespace = configLine.getNamespace() == null ? CORE_NAMESPACE_NAME : configLine.getNamespace();
-      ComponentModel.Builder builder = new ComponentModel.Builder()
-          .setIdentifier(new ComponentIdentifier.Builder().withNamespace(namespace).withName(configLine.getIdentifier()).build())
-          .setTextContent(configLine.getTextContent());
-      to(builder).addNode(from(configLine).getNode()).addConfigFileName(configFileName);
-      for (SimpleConfigAttribute simpleConfigAttribute : configLine.getConfigAttributes().values()) {
-        builder.addParameter(simpleConfigAttribute.getName(), resolveValueIfIsPlaceHolder(simpleConfigAttribute.getValue()),
-                             simpleConfigAttribute.isValueFromSchema());
-      }
-      List<ComponentModel> componentModels = extractComponentDefinitionModel(configLine.getChildren(), configFileName);
-      componentModels.stream().forEach(componentDefinitionModel -> {
-        if (SPRING_PROPERTY_IDENTIFIER.equals(componentDefinitionModel.getIdentifier())) {
-          String value = componentDefinitionModel.getParameters().get(VALUE_ATTRIBUTE);
-          if (value != null) {
-            builder.addParameter(componentDefinitionModel.getNameAttribute(), resolveValueIfIsPlaceHolder(value), false);
-          }
-        }
-        builder.addChildComponentModel(componentDefinitionModel);
-      });
-      ConfigLine parent = configLine.getParent();
-      if (parent != null && isConfigurationTopComponent(parent)) {
-        builder.markAsRootComponent();
-      }
-      ComponentModel componentModel = builder.build();
-      for (ComponentModel innerComponentModel : componentModel.getInnerComponents()) {
-        innerComponentModel.setParent(componentModel);
-      }
-      models.add(componentModel);
-    }
-    return models;
-  }
-
-  private String resolveValueIfIsPlaceHolder(String value) {
-    return propertyPlaceholderHelper.replacePlaceholders(value, applicationProperties);
-  }
-
-  private boolean isConfigurationTopComponent(ConfigLine parent) {
-    return (parent.getIdentifier().equals(MULE_ROOT_ELEMENT) || parent.getIdentifier().equals(MULE_DOMAIN_ROOT_ELEMENT));
-  }
+  //private List<ComponentModel> extractComponentDefinitionModel(List<ConfigLine> configLines, String configFileName) {
+  //  List<ComponentModel> models = new ArrayList<>();
+  //  for (final ConfigLine configLine : configLines) {
+  //    String namespace = configLine.getNamespace() == null ? CORE_NAMESPACE_NAME : configLine.getNamespace();
+  //    ComponentModel.Builder builder = new ComponentModel.Builder()
+  //        .setIdentifier(new ComponentIdentifier.Builder().withNamespace(namespace).withName(configLine.getIdentifier()).build())
+  //        .setTextContent(configLine.getTextContent());
+  //    to(builder).addNode(from(configLine).getNode()).addConfigFileName(configFileName);
+  //    for (SimpleConfigAttribute simpleConfigAttribute : configLine.getConfigAttributes().values()) {
+  //      builder.addParameter(simpleConfigAttribute.getName(), resolveValueIfIsPlaceHolder(simpleConfigAttribute.getValue()),
+  //                           simpleConfigAttribute.isValueFromSchema());
+  //    }
+  //    List<ComponentModel> componentModels = extractComponentDefinitionModel(configLine.getChildren(), configFileName);
+  //    componentModels.stream().forEach(componentDefinitionModel -> {
+  //      if (SPRING_PROPERTY_IDENTIFIER.equals(componentDefinitionModel.getIdentifier())) {
+  //        String value = componentDefinitionModel.getParameters().get(VALUE_ATTRIBUTE);
+  //        if (value != null) {
+  //          builder.addParameter(componentDefinitionModel.getNameAttribute(), resolveValueIfIsPlaceHolder(value), false);
+  //        }
+  //      }
+  //      builder.addChildComponentModel(componentDefinitionModel);
+  //    });
+  //    ConfigLine parent = configLine.getParent();
+  //    if (parent != null && isConfigurationTopComponent(parent)) {
+  //      builder.markAsRootComponent();
+  //    }
+  //    ComponentModel componentModel = builder.build();
+  //    for (ComponentModel innerComponentModel : componentModel.getInnerComponents()) {
+  //      innerComponentModel.setParent(componentModel);
+  //    }
+  //    models.add(componentModel);
+  //  }
+  //  return models;
+  //}
+  //
+  //private String resolveValueIfIsPlaceHolder(String value) {
+  //  return propertyPlaceholderHelper.replacePlaceholders(value, applicationProperties);
+  //}
+  //
+  //private boolean isConfigurationTopComponent(ConfigLine parent) {
+  //  return (parent.getIdentifier().equals(MULE_ROOT_ELEMENT) || parent.getIdentifier().equals(MULE_DOMAIN_ROOT_ELEMENT));
+  //}
 
   private ComponentModel innerFindComponentDefinitionModel(Element element, List<ComponentModel> componentModels) {
     for (ComponentModel componentModel : componentModels) {
