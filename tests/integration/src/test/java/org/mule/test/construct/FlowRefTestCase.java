@@ -36,6 +36,7 @@ import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
 import org.apache.http.entity.ContentType;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -151,6 +152,7 @@ public class FlowRefTestCase extends AbstractIntegrationTestCase {
   }
 
   @Test
+  @Ignore("MULE-9731")
   public void nonBlockingFlowRef() throws Exception {
     Response response = Request.Post(String.format("http://localhost:%s/%s", port.getNumber(), "nonBlockingFlowRefBasic"))
         .connectTimeout(RECEIVE_TIMEOUT).bodyString(TEST_MESSAGE, ContentType.TEXT_PLAIN).execute();
@@ -167,6 +169,7 @@ public class FlowRefTestCase extends AbstractIntegrationTestCase {
   }
 
   @Test
+  @Ignore("MULE-9731")
   public void nonBlockingFlowRefToAsyncFlow() throws Exception {
     Response response = Request.Post(String.format("http://localhost:%s/%s", port.getNumber(), "nonBlockingFlowRefToAsyncFlow"))
         .connectTimeout(RECEIVE_TIMEOUT).bodyString(TEST_MESSAGE, ContentType.TEXT_PLAIN).execute();
@@ -177,6 +180,7 @@ public class FlowRefTestCase extends AbstractIntegrationTestCase {
   }
 
   @Test
+  @Ignore("MULE-9731")
   public void nonBlockingFlowRefToSyncFlow() throws Exception {
     Response response = Request.Post(String.format("http://localhost:%s/%s", port.getNumber(), "nonBlockingFlowRefToSyncFlow"))
         .connectTimeout(RECEIVE_TIMEOUT).bodyString(TEST_MESSAGE, ContentType.TEXT_PLAIN).execute();
@@ -194,6 +198,7 @@ public class FlowRefTestCase extends AbstractIntegrationTestCase {
 
 
   @Test
+  @Ignore("MULE-9731")
   public void nonBlockingFlowRefErrorHandling() throws Exception {
     Response response = Request.Post(String.format("http://localhost:%s/%s", port.getNumber(), "nonBlockingFlowRefErrorHandling"))
         .connectTimeout(RECEIVE_TIMEOUT).bodyString(TEST_MESSAGE, ContentType.TEXT_PLAIN).execute();

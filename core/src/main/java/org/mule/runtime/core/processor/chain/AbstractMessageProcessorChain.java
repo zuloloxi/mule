@@ -26,7 +26,6 @@ import org.mule.runtime.core.api.processor.Processor;
 import org.mule.runtime.core.api.processor.MessageProcessorChain;
 import org.mule.runtime.core.api.processor.MessageProcessorContainer;
 import org.mule.runtime.core.api.processor.MessageProcessorPathElement;
-import org.mule.runtime.core.processor.NonBlockingMessageProcessor;
 import org.mule.runtime.core.util.NotificationUtils;
 import org.mule.runtime.core.util.StringUtils;
 
@@ -42,8 +41,8 @@ import org.slf4j.LoggerFactory;
  * nested in another chain the next MessageProcessor in the parent chain is not injected into the first in the nested chain.
  */
 public abstract class AbstractMessageProcessorChain extends AbstractAnnotatedObject
-    implements NonBlockingMessageProcessor, MessageProcessorChain, Lifecycle, FlowConstructAware, MuleContextAware,
-    MessageProcessorContainer, MessagingExceptionHandlerAware {
+    implements MessageProcessorChain, Lifecycle, FlowConstructAware, MuleContextAware,
+    MessageProcessorContainer, MessagingExceptionHandlerAware, Processor {
 
   protected final transient Logger log = LoggerFactory.getLogger(getClass());
   protected String name;

@@ -26,7 +26,6 @@ import org.mule.runtime.core.api.processor.MessageProcessorChain;
 import org.mule.runtime.core.api.processor.MessageProcessorContainer;
 import org.mule.runtime.core.api.processor.MessageProcessorPathElement;
 import org.mule.runtime.core.config.i18n.CoreMessages;
-import org.mule.runtime.core.processor.NonBlockingMessageProcessor;
 import org.mule.runtime.core.processor.chain.DynamicMessageProcessorContainer;
 import org.mule.runtime.core.util.NotificationUtils.FlowMap;
 
@@ -44,7 +43,7 @@ import org.springframework.context.ApplicationContextAware;
 public class FlowRefFactoryBean extends AbstractAnnotatedObject
     implements FactoryBean<Processor>, ApplicationContextAware, MuleContextAware, Initialisable, Disposable {
 
-  private abstract class FlowRefMessageProcessor implements NonBlockingMessageProcessor, AnnotatedObject, FlowConstructAware {
+  private abstract class FlowRefMessageProcessor implements AnnotatedObject, FlowConstructAware, Processor {
 
     protected FlowConstruct flowConstruct;
 
@@ -156,7 +155,7 @@ public class FlowRefFactoryBean extends AbstractAnnotatedObject
 
           // Because this is created dynamically annotations cannot be injected by Spring and so
           // FlowRefMessageProcessor is not used here.
-          return ((NonBlockingMessageProcessor) event1 -> dynamicMessageProcessor.process(event1)).process(event);
+          return ((Processor) event1 -> dynamicMessageProcessor.process(event1)).process(event);
         }
       };
       if (dynamicReference instanceof Initialisable) {

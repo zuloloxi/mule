@@ -17,6 +17,7 @@ import org.mule.runtime.core.api.client.MuleClient;
 import org.mule.tck.SensingNullRequestResponseMessageProcessor;
 import org.mule.tck.junit4.rule.DynamicPort;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -35,6 +36,7 @@ public class CxfContentTypeNonBlockingTestCase extends FunctionalTestCase {
   }
 
   @Test
+  @Ignore("MULE-9731")
   public void testCxfService() throws Exception {
     InternalMessage request = InternalMessage.builder().payload(requestPayload).build();
     MuleClient client = muleContext.getClient();
@@ -47,6 +49,7 @@ public class CxfContentTypeNonBlockingTestCase extends FunctionalTestCase {
   }
 
   @Test
+  @Ignore("MULE-9731")
   public void testCxfClient() throws Exception {
     InternalMessage request = InternalMessage.builder().payload("hello").build();
     MuleClient client = muleContext.getClient();
@@ -60,6 +63,7 @@ public class CxfContentTypeNonBlockingTestCase extends FunctionalTestCase {
   }
 
   @Test
+  @Ignore("MULE-9731")
   public void testCxfClientProxy() throws Exception {
     InternalMessage request = InternalMessage.builder().payload("hello").build();
     MuleClient client = muleContext.getClient();

@@ -17,6 +17,7 @@ import org.mule.tck.SensingNullRequestResponseMessageProcessor;
 import org.mule.functional.junit4.FunctionalTestCase;
 import org.mule.tck.junit4.rule.DynamicPort;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -45,22 +46,26 @@ public class ProxyNonBlockingTestCase extends FunctionalTestCase {
   }
 
   @Test
+  @Ignore("MULE-9731")
   public void testEchoService() throws Exception {
     doTest("/services/echo", ECHO_SOAP_REQUEST, ECHO_SOAP_REQUEST);
   }
 
   @Test
+  @Ignore("MULE-9731")
   public void testEchoProxy() throws Exception {
     doTest("/proxies/echo", ECHO_SOAP_REQUEST, ECHO_SOAP_REQUEST);
     getSensingInstance("sensingRequestResponseProcessorEcho").assertRequestResponseThreadsDifferent();
   }
 
   @Test
+  @Ignore("MULE-9731")
   public void testGreeterService() throws Exception {
     doTest("/services/greeter", GREETER_SOAP_REQUEST, GREETER_SOAP_TEST_ELEMENT_RESPONSE);
   }
 
   @Test
+  @Ignore("MULE-9731")
   public void testGreeterProxy() throws Exception {
     doTest("/proxies/greeter", GREETER_SOAP_REQUEST, GREETER_SOAP_TEST_ELEMENT_RESPONSE);
     getSensingInstance("sensingRequestResponseProcessorGreeter").assertRequestResponseThreadsDifferent();

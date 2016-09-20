@@ -8,7 +8,6 @@ package org.mule.runtime.core.enricher;
 
 import static org.mule.runtime.core.message.DefaultEventBuilder.EventImplementation.setCurrentEvent;
 
-import org.mule.runtime.core.NonBlockingVoidMuleEvent;
 import org.mule.runtime.core.VoidMuleEvent;
 import org.mule.runtime.core.api.MuleContext;
 import org.mule.runtime.core.api.Event;
@@ -24,7 +23,6 @@ import org.mule.runtime.core.api.processor.MessageProcessors;
 import org.mule.runtime.core.metadata.DefaultTypedValue;
 import org.mule.runtime.core.processor.AbstractMessageProcessorOwner;
 import org.mule.runtime.core.processor.AbstractRequestResponseMessageProcessor;
-import org.mule.runtime.core.processor.NonBlockingMessageProcessor;
 import org.mule.runtime.core.processor.chain.DefaultMessageProcessorChain;
 import org.mule.runtime.core.processor.chain.InterceptingChainLifecycleWrapper;
 import org.mule.runtime.core.session.DefaultMuleSession;
@@ -56,7 +54,7 @@ import java.util.List;
  * <p/>
  * <b>EIP Reference:</b> <a href="http://eaipatterns.com/DataEnricher.html">http://eaipatterns.com/DataEnricher.html<a/>
  */
-public class MessageEnricher extends AbstractMessageProcessorOwner implements NonBlockingMessageProcessor {
+public class MessageEnricher extends AbstractMessageProcessorOwner implements Processor {
 
   private List<EnrichExpressionPair> enrichExpressionPairs = new ArrayList<>();
 
@@ -186,17 +184,6 @@ public class MessageEnricher extends AbstractMessageProcessorOwner implements No
     protected Event processBlocking(Event event) throws MuleException {
       this.eventToEnrich = event;
       return super.processBlocking(copyEventForEnrichment(event));
-    }
-
-    @Override
-    protected Event processNonBlocking(Event event) throws MuleException {
-      this.eventToEnrich = event;
-      Event result =
-          processNext(copyEventForEnrichment(Event.builder(event).replyToHandler(createReplyToHandler(event)).build()));
-      if (!(result instanceof NonBlockingVoidMuleEvent)) {
-        result = processResponse(result, event);
-      }
-      return result;
     }
 
     private Event copyEventForEnrichment(Event event) {

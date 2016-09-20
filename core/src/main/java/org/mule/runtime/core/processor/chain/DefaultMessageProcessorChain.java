@@ -8,14 +8,22 @@ package org.mule.runtime.core.processor.chain;
 
 import static java.util.Arrays.asList;
 import static org.mule.runtime.core.execution.MessageProcessorExecutionTemplate.createExecutionTemplate;
+import static org.mule.runtime.core.message.DefaultEventBuilder.EventImplementation.setCurrentEvent;
 
+import org.mule.runtime.core.MessageExchangePattern;
+import org.mule.runtime.core.VoidMuleEvent;
 import org.mule.runtime.core.api.MuleContext;
 import org.mule.runtime.core.api.Event;
 import org.mule.runtime.core.api.MuleException;
+import org.mule.runtime.core.api.component.Component;
 import org.mule.runtime.core.api.construct.FlowConstruct;
 import org.mule.runtime.core.api.processor.Processor;
 import org.mule.runtime.core.api.processor.MessageProcessorChain;
+import org.mule.runtime.core.api.transformer.Transformer;
+import org.mule.runtime.core.api.transport.LegacyOutboundEndpoint;
 import org.mule.runtime.core.execution.MessageProcessorExecutionTemplate;
+import org.mule.runtime.core.message.DefaultEventBuilder;
+import org.mule.runtime.core.routing.MessageFilter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,11 +61,23 @@ public class DefaultMessageProcessorChain extends AbstractMessageProcessorChain 
     return new DefaultMessageProcessorChainBuilder(muleContext).chain(messageProcessors).build();
   }
 
-  @Override
   protected Event doProcess(Event event) throws MuleException {
-    return new ProcessorExecutorFactory()
-        .createProcessorExecutor(event, processors, messageProcessorExecutionTemplate, true, flowConstruct)
-        .execute();
+    Event copy;
+
+    for (int i = 0; i < processors.size(); i++) {
+      Processor processor = processors.get(i);
+      copy = event;
+
+      event = messageProcessorExecutionTemplate.execute(processor, event);
+
+      if (VoidMuleEvent.getInstance().equals(event)) {
+        setCurrentEvent(copy);
+        event = copy;
+      } else if (event == null) {
+        return null;
+      }
+    }
+    return event;
   }
 
   public void setTemplateMuleContext(MuleContext context) {

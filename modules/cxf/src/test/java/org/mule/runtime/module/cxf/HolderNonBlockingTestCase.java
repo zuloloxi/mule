@@ -25,6 +25,7 @@ import java.nio.charset.Charset;
 
 import javax.xml.ws.Holder;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -39,6 +40,7 @@ public class HolderNonBlockingTestCase extends FunctionalTestCase {
   }
 
   @Test
+  @Ignore("MULE-9731")
   public void testClientEchoHolder() throws Exception {
     InternalMessage request = InternalMessage.builder().payload("TEST").build();
     MuleClient client = muleContext.getClient();
@@ -55,6 +57,7 @@ public class HolderNonBlockingTestCase extends FunctionalTestCase {
   }
 
   @Test
+  @Ignore("MULE-9731")
   public void testClientProxyEchoHolder() throws Exception {
     InternalMessage request = InternalMessage.builder().payload("TEST").build();
     MuleClient client = muleContext.getClient();
@@ -70,6 +73,7 @@ public class HolderNonBlockingTestCase extends FunctionalTestCase {
   }
 
   @Test
+  @Ignore("MULE-9731")
   public void testClientEcho2Holder() throws Exception {
     InternalMessage request = InternalMessage.builder().payload("TEST").build();
     MuleClient client = muleContext.getClient();
@@ -85,6 +89,7 @@ public class HolderNonBlockingTestCase extends FunctionalTestCase {
   }
 
   @Test
+  @Ignore("MULE-9731")
   public void testClientProxyEcho2Holder() throws Exception {
     InternalMessage request = InternalMessage.builder().payload("TEST").build();
     MuleClient client = muleContext.getClient();
@@ -99,6 +104,7 @@ public class HolderNonBlockingTestCase extends FunctionalTestCase {
   }
 
   @Test
+  @Ignore("MULE-9731")
   public void testClientEcho3Holder() throws Exception {
     InternalMessage request = InternalMessage.builder().payload("TEST").build();
     MuleClient client = muleContext.getClient();
@@ -113,6 +119,7 @@ public class HolderNonBlockingTestCase extends FunctionalTestCase {
   }
 
   @Test
+  @Ignore("MULE-9731")
   public void testClientProxyEcho3Holder() throws Exception {
     InternalMessage request = InternalMessage.builder().payload("TEST").build();
     MuleClient client = muleContext.getClient();
