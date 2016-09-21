@@ -222,7 +222,7 @@ public abstract class ExtensionComponent
    */
   @Override
   public MetadataResult<ComponentMetadataDescriptor> getMetadata() throws MetadataResolvingException {
-    return withContextClassLoader(getClassLoader(this.extensionModel), () -> metadataMediator.getMetadata());
+    return withContextClassLoader(getClassLoader(this.extensionModel), () -> metadataMediator.getMetadata(getMetadataContext()));
   }
 
   /**
@@ -230,8 +230,8 @@ public abstract class ExtensionComponent
    */
   @Override
   public MetadataResult<ComponentMetadataDescriptor> getMetadata(MetadataKey key) throws MetadataResolvingException {
-    final MetadataContext metadataContext = getMetadataContext();
-    return withContextClassLoader(getClassLoader(this.extensionModel), () -> metadataMediator.getMetadata(metadataContext, key));
+    return withContextClassLoader(getClassLoader(this.extensionModel),
+                                  () -> metadataMediator.getMetadata(getMetadataContext(), key));
   }
 
   @Override

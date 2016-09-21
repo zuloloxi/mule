@@ -138,17 +138,29 @@ public class MetadataMediator {
    * @return a{@link MetadataResult} of {@link ComponentMetadataDescriptor} with the Static Metadata representation of the
    *         Component.
    */
-  public MetadataResult<ComponentMetadataDescriptor> getMetadata() {
-    ComponentMetadataDescriptorBuilder componentDescriptorBuilder = componentDescriptor(componentModel.getName())
-        .withParametersDescriptor(getParametersMetadataDescriptors())
-        .withOutputDescriptor(getOutputMetadataDescriptor());
+  public MetadataResult<ComponentMetadataDescriptor> getMetadata(MetadataContext context) {
+    MetadataKey key = new NullMetadataKey();
+    if (metadataKeyParts.stream().allMatch(p -> p.getDefaultValue() != null)) {
+      if (metadataKeyParts.size() == 1) {
+        key = newKey(metadataKeyParts.get(0).getDefaultValue().toString()).build();
+      } else {
+        MetadataKeyBuilder builder = newKey("");
+        for (int i = 1; i <= metadataKeyParts.size(); i++) {
+          final int index = i;
+          Optional<ParameterModel> first = metadataKeyParts.stream()
+            .filter(p -> p.getModelProperty(MetadataKeyPartModelProperty.class).get().getOrder() == index)
+            .findFirst();
 
-    Optional<MetadataResult<ParameterMetadataDescriptor>> contentDescriptor = getContentMetadataDescriptor();
-    if (contentDescriptor.isPresent()) {
-      componentDescriptorBuilder.withContentDescriptor(contentDescriptor.get());
+          if (i > 1) {
+            builder = builder.withChild(newKey(first.get().getDefaultValue().toString()));
+          } else {
+            builder = newKey(first.get().getDefaultValue().toString());
+          }
+        }
+        key = builder.build();
+      }
     }
-
-    return success(componentDescriptorBuilder.build());
+    return getMetadata(context, key);
   }
 
   /**
