@@ -612,7 +612,7 @@ public abstract class ExtensionDefinitionParser {
    * @param defaultValue the parameter's default value
    * @param expressionSupport the parameter's {@link ExpressionSupport}
    * @param required whether the parameter is required or not
-   * @param modelProperties
+   * @param modelProperties parameter's {@link ModelProperty}s
    */
   protected void parseObjectParameter(String key, String name, ObjectType type, Object defaultValue,
                                       ExpressionSupport expressionSupport, boolean required, boolean acceptsReferences,
@@ -746,7 +746,7 @@ public abstract class ExtensionDefinitionParser {
     }
 
     if (value instanceof Date || value instanceof LocalDate || value instanceof LocalDateTime || value instanceof Calendar) {
-      return new StaticValueResolver(value);
+      return new StaticValueResolver<>(value);
     }
 
     throw new IllegalArgumentException(format("Could not transform value of type '%s' to a valid date type",
@@ -765,12 +765,12 @@ public abstract class ExtensionDefinitionParser {
 
     Class<?> type = getType(dateType);
     if (isExpression(value, parser)) {
-      return new TypeSafeExpressionValueResolver((String) value, type, muleContext);
+      return new TypeSafeExpressionValueResolver<>((String) value, type, muleContext);
     }
 
     if (value == null) {
       if (defaultValue == null) {
-        return new StaticValueResolver(null);
+        return new StaticValueResolver<>(null);
       }
 
       value = defaultValue;
